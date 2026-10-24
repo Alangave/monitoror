@@ -2,10 +2,12 @@ import template from 'lodash.template'
 import * as path from 'path'
 import {UserConfig} from 'vite'
 import tsResolver from 'vite-tsconfig-paths'
+import vue from '@vitejs/plugin-vue'
 
 const BASE_URL = './'
 
 const config: UserConfig = {
+  plugins: [vue()],
   optimizeDeps: {
     include: [
       'ts-md5/dist/md5',
