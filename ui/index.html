@@ -4,182 +4,39 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <% if (typeof(VITE_APP_TITLE) !== 'undefined') { %>
-  <title><%= VITE_APP_TITLE %></title>
-  <% } else { %>
   <title>Monitoror</title>
-  <% } %>
-  <link rel="icon" type="image/png" href="<%= BASE_URL %>favicon.png">
-  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="icon" href="./favicon.ico">
 
   <!-- OpenGraph / Twitter cards -->
-  <% if (typeof(VITE_APP_CANONICAL_URL) !== 'undefined') { %>
-  <link rel="canonical" href="<%= VITE_APP_CANONICAL_URL %>">
+  <link rel="canonical" href="https://monitoror.com">
   <meta property="og:image" content="https://monitoror.com/assets/images/opengraph.png"/>
   <meta property="og:site_name" content="Monitoror"/>
   <meta property="og:type" content="website"/>
-  <meta property="og:title" content="Monitoror — Unified monitoring wallboard"/>
-  <meta property="og:url" content="<%= VITE_APP_CANONICAL_URL %>"/>
-  <meta property="og:description"
-        content="Monitoror is a wallboard monitoring app to monitor server status; monitor CI builds progress or even display critical values"/>
-  <% } %>
-  <meta name="twitter:image:src" content="https://monitoror.com/assets/images/opengraph.png"/>
-  <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="Monitoror — Unified monitoring wallboard"/>
-  <meta name="twitter:description"
-        content="Monitoror is a wallboard monitoring app to monitor server status; monitor CI builds progress or even display critical values"/>
+  <meta property="og:title" content="Monitoror"/>
+  <meta property="og:description" content="Monitoror - Unified monitoring wallboard (and more!)"/>
+  <meta property="twitter:card" content="summary_large_image"/>
+  <meta property="twitter:site" content="@monitororapp"/>
+  <meta property="twitter:creator" content="@jsdidierlaurent"/>
+  <meta property="twitter:title" content="Monitoror"/>
+  <meta property="twitter:description" content="Monitoror - Unified monitoring wallboard (and more!)"/>
 
-  <style>
-    :root {
-      --color-background: #11263a;
-      --color-dark-background: #15202b;
-      --color-docs-background: #20252a;
-      --color-code-background: #171b20;
-      --color-cello: #204263;
-      --color-text: var(--color-background);
-      --color-spindle: #cfdff0;
-      --color-spring-wood: #f8f8f2;
-      --color-succeeded: #88d8b0;
-      --color-failed: #ff6f69;
-      --color-warning: #ffcc5c;
-      --color-unknown: #9ca3ab;
-      --color-canceled: #e3eaf1;
-      --color-action-required: #57c0ff;
-      --color-succeeded-dark: #252d30;
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Monitoror">
+  <meta name="description" content="Monitoror - Unified monitoring wallboard (and more!)">
 
-      /* For Firefox */
-      scrollbar-color: var(--color-cello) var(--color-code-background);
-    }
-
-    body:not(.macos)::-webkit-scrollbar,
-    body:not(.macos) *::-webkit-scrollbar {
-      width: 17px;
-    }
-
-    body:not(.macos)::-webkit-scrollbar-track,
-    body:not(.macos) *::-webkit-scrollbar-track {
-      background: var(--color-code-background);
-    }
-
-    body:not(.macos)::-webkit-scrollbar-thumb,
-    body:not(.macos) *::-webkit-scrollbar-thumb {
-      background: var(--color-cello);
-      border: 2px solid var(--color-code-background);
-      border-top: 0;
-      border-bottom: 0;
-    }
-
-    body:not(.macos)::-webkit-scrollbar-thumb:hover,
-    body:not(.macos) *::-webkit-scrollbar-thumb:hover {
-      background: var(--color-action-required);
-    }
-
-    html,
-    body {
-      padding: 0;
-      margin: 0;
-      height: 100%;
-      width: 100%;
-      background: var(--color-background);
-      color: #fff;
-      font-family: "Open Sans", sans-serif;
-      font-size: 18px;
-      font-weight: 600;
-      line-height: 1.2;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    @font-face {
-      font-family: 'Open Sans';
-      src: url('<%= BASE_URL %>fonts/open-sans-light.woff2') format('woff2');
-      font-weight: 300;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    @font-face {
-      font-family: 'Open Sans';
-      src: url('<%= BASE_URL %>fonts/open-sans-regular.woff2') format('woff2');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    @font-face {
-      font-family: 'Open Sans';
-      src: url('<%= BASE_URL %>fonts/open-sans-semibold.woff2') format('woff2');
-      font-weight: 600;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    @font-face {
-      font-family: 'Open Sans';
-      src: url('<%= BASE_URL %>fonts/open-sans-bold.woff2') format('woff2');
-      font-weight: 700;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    @font-face {
-      font-family: 'JetBrains Mono';
-      src: url('<%= BASE_URL %>fonts/jetbrains-mono-regular.woff2') format('woff2');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    /* Underlined links */
-    a {
-      position: relative;
-      display: inline-block;
-      color: var(--color-succeeded);
-      text-decoration: none;
-    }
-
-    a code {
-      color: inherit;
-    }
-
-    a::after {
-      content: "";
-      transform-origin: 0 0;
-      transform: scaleX(0);
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      background: currentColor;
-      opacity: 0.7;
-      will-change: transform;
-      transition: transform 150ms;
-    }
-
-    a:hover::after {
-      transform: scaleX(1);
-    }
-
-    /* SVG default fill color */
-    svg {
-      fill: currentColor;
-    }
-  </style>
+  <!-- Fonts -->
+  <link rel="preload" href="./fonts/open-sans-bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/open-sans-semibold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/open-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/open-sans-light.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/jetbrains-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
-<noscript>
-  <strong>
-    We're sorry but Monitoror doesn't work properly without JavaScript enabled. Please enable it to continue.
-  </strong>
-</noscript>
-<div id="app-root"></div>
-<script type="module" src="/src/main.ts"></script>
+  <noscript>
+    <strong>We're sorry but this app doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
