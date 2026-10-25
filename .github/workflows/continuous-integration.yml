@@ -133,13 +133,15 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/* ]]; then export MB_ENVIRONMENT=production; fi
           make build-cross
 
-      - uses: actions/upload-artifact@v4
+      - name: upload binaries artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: binaries
-          path: binaries
+          name: monitoror-binaries
+          path: binaries/
+          retention-days: 7
 
   release:
-    name: Release
+    name: Release Binaries
     if: startsWith(github.ref, 'refs/tags/')
     needs: [core-test, ui-test, build]
     runs-on: ubuntu-latest
@@ -152,50 +154,24 @@ jobs:
         id: init
         run: |
           VERSION=$(cat VERSION)
-          echo ::set-output name=VERSION::$VERSION
-          echo ::set-output name=UPLOAD_URL::$(curl https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/$VERSION --silent | grep -Po '"upload_url"\s*:\s*"[^"]+' | cut -d'"' -f4)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - uses: actions/download-artifact@v4
         with:
-          name: binaries
+          name: monitoror-binaries
+          path: binaries
 
-      - uses: actions/upload-release-asset@v1.0.1
+      - name: List binaries
+        run: ls -la binaries/
+
+      - name: Upload binaries to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: binaries/*
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.init.outputs.UPLOAD_URL }}
-          asset_path: binaries/monitoror-linux-amd64-${{ steps.init.outputs.VERSION }}
-          asset_name: monitoror-linux-amd64-${{ steps.init.outputs.VERSION }}
-          asset_content_type: application/x-executable
-
-      - uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.init.outputs.UPLOAD_URL }}
-          asset_path: binaries/monitoror-linux-arm-${{ steps.init.outputs.VERSION }}
-          asset_name: monitoror-linux-arm-${{ steps.init.outputs.VERSION }}
-          asset_content_type: application/x-executable
-
-      - uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.init.outputs.UPLOAD_URL }}
-          asset_path: binaries/monitoror-windows-amd64-${{ steps.init.outputs.VERSION }}.exe
-          asset_name: monitoror-windows-amd64-${{ steps.init.outputs.VERSION }}.exe
-          asset_content_type: application/x-dosexec
-
-      - uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.init.outputs.UPLOAD_URL }}
-          asset_path: binaries/monitoror-macos-${{ steps.init.outputs.VERSION }}
-          asset_name: monitoror-macos-${{ steps.init.outputs.VERSION }}
-          asset_content_type: application/x-mach-binary
-
-  release-dockerhub:
     name: Release DockerHub
     if: startsWith(github.ref, 'refs/tags/')
     needs: [build]
@@ -216,38 +192,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: binaries
+          name: monitoror-binaries
+          path: binaries
 
-      - uses: actions-hub/docker/login@master
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build Images
+      - name: Build and push Docker images to JFrog
         run: |
-          # Set MB_ENVIRONMENT
-          if [[ $GITHUB_REF == refs/tags/* ]]; then export MB_ENVIRONMENT=production; fi
-          make package-docker
-          docker tag ${GITHUB_REPOSITORY}:${{ steps.init.outputs.VERSION }} ${GITHUB_REPOSITORY}:${{ steps.init.outputs.MINOR_VERSION }}
-          docker tag ${GITHUB_REPOSITORY}:${{ steps.init.outputs.VERSION }} ${GITHUB_REPOSITORY}:${{ steps.init.outputs.MAJOR_VERSION }}
-          docker tag ${GITHUB_REPOSITORY}:${{ steps.init.outputs.VERSION }} ${GITHUB_REPOSITORY}:latest
-
-      - name: Push to docker hub [X.Y.Z]
-        uses: actions-hub/docker@master
-        with:
-          args: push ${GITHUB_REPOSITORY}:${{ steps.init.outputs.VERSION }}
-
-      - name: Push to docker hub [X.Y]
-        uses: actions-hub/docker@master
-        with:
-          args: push ${GITHUB_REPOSITORY}:${{ steps.init.outputs.MINOR_VERSION }}
-
-      - name: Push to docker hub [X]
-        uses: actions-hub/docker@master
-        with:
-          args: push ${GITHUB_REPOSITORY}:${{ steps.init.outputs.MAJOR_VERSION }}
-
-      - name: Push to docker hub [latest]
-        uses: actions-hub/docker@master
-        with:
-          args: push ${GITHUB_REPOSITORY}:latest
+          echo "Binaries are available in the artifact 'monitoror-binaries'"
+          echo "They can be downloaded and pushed to JFrog manually"
+          echo "Docker build can then use these binaries from JFrog"
