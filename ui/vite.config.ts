@@ -1,13 +1,16 @@
-import template from 'lodash.template'
 import * as path from 'path'
-import { UserConfig } from 'vite'
-import tsResolver from 'vite-tsconfig-paths'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 const BASE_URL = './'
 
-const config: UserConfig = {
+export default defineConfig({
   plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   optimizeDeps: {
     include: [
       'ts-md5/dist/md5',
@@ -19,25 +22,15 @@ const config: UserConfig = {
   assetsDir: '.',
   base: BASE_URL,
   port: 8000,
-  proxy: {
-    '/api': 'http://localhost:8080',
-  },
-  resolvers: [
-    tsResolver,
-  ],
-  indexHtmlTransforms: [
-    {
-      apply: 'pre',
-      transform ({ code }) {
-        const compiled = template(code)
-        return compiled({
-          VITE_APP_TITLE: process.env.VITE_APP_TITLE,
-          VITE_APP_CANONICAL_URL: process.env.VITE_APP_CANONICAL_URL,
-          BASE_URL,
-        })
-      },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080',
     },
-  ],
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
   configureServer: ({ root, app, watcher }) => {
     watcher.add(path.resolve(root, './public/**/*'))
     const publicPath = path.resolve(root, './public')
@@ -51,6 +44,4 @@ const config: UserConfig = {
       }
     })
   },
-}
-
-export default config
+})
