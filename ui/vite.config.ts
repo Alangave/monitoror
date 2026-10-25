@@ -19,7 +19,6 @@ export default defineConfig({
       'ts-md5',
     ],
   },
-  assetsDir: '.',
   base: BASE_URL,
   port: 8000,
   server: {
@@ -30,6 +29,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    assetsDir: 'assets',
   },
   configureServer: ({ root, app, watcher }) => {
     watcher.add(path.resolve(root, './public/**/*'))
