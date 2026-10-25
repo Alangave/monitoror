@@ -31,6 +31,150 @@
   <link rel="preload" href="./fonts/open-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="./fonts/open-sans-light.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="./fonts/jetbrains-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    :root {
+      --color-background: #11263a;
+      --color-dark-background: #15202b;
+      --color-docs-background: #20252a;
+      --color-code-background: #171b20;
+      --color-cello: #204263;
+      --color-text: var(--color-background);
+      --color-spindle: #cfdff0;
+      --color-spring-wood: #f8f8f2;
+      --color-succeeded: #88d8b0;
+      --color-failed: #ff6f69;
+      --color-warning: #ffcc5c;
+      --color-unknown: #9ca3ab;
+      --color-canceled: #e3eaf1;
+      --color-action-required: #57c0ff;
+      --color-succeeded-dark: #252d30;
+
+      /* For Firefox */
+      scrollbar-color: var(--color-cello) var(--color-code-background);
+    }
+
+    body:not(.macos)::-webkit-scrollbar,
+    body:not(.macos) *::-webkit-scrollbar {
+      width: 17px;
+    }
+
+    body:not(.macos)::-webkit-scrollbar-track,
+    body:not(.macos) *::-webkit-scrollbar-track {
+      background: var(--color-code-background);
+    }
+
+    body:not(.macos)::-webkit-scrollbar-thumb,
+    body:not(.macos) *::-webkit-scrollbar-thumb {
+      background: var(--color-cello);
+      border: 2px solid var(--color-code-background);
+      border-top: 0;
+      border-bottom: 0;
+    }
+
+    body:not(.macos)::-webkit-scrollbar-thumb:hover,
+    body:not(.macos) *::-webkit-scrollbar-thumb:hover {
+      background: var(--color-action-required);
+    }
+
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      background: var(--color-background);
+      color: #fff;
+      font-family: "Open Sans", sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    @font-face {
+      font-family: 'Open Sans';
+      src: url('./fonts/open-sans-light.woff2') format('woff2');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Open Sans';
+      src: url('./fonts/open-sans-regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Open Sans';
+      src: url('./fonts/open-sans-semibold.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Open Sans';
+      src: url('./fonts/open-sans-bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('./fonts/jetbrains-mono-regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* Underlined links */
+    a {
+      position: relative;
+      display: inline-block;
+      color: var(--color-succeeded);
+      text-decoration: none;
+    }
+
+    a code {
+      color: inherit;
+    }
+
+    a::after {
+      content: "";
+      transform-origin: 0 0;
+      transform: scaleX(0);
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: currentColor;
+      opacity: 0.7;
+      will-change: transform;
+      transition: transform 150ms;
+    }
+
+    a:hover::after {
+      transform: scaleX(1);
+    }
+
+    /* SVG default fill color */
+    svg {
+      fill: currentColor;
+    }
+  </style>
 </head>
 <body>
   <noscript>
