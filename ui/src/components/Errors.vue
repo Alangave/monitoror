@@ -20,7 +20,7 @@
           <hr v-if="!hasConfigVerifyErrors">
         </template>
       </div>
-      <div class="c-monitoror-errors--error" v-for="error in errors">
+      <div class="c-monitoror-errors--error" v-for="error in errors" :key="error.id">
         <!-- Blocking single-line errors -->
         <template v-if="isCoreDown">
           <p class="c-monitoror-errors--error-title">
@@ -45,9 +45,9 @@
           </p>
           <p v-if="error.data.expected">
             Must be one of:
-            <template v-for="(namedConfig, index) in splitList(error.data.expected)">
-              <code>{{namedConfig}}</code><template v-if="index !== splitList(error.data.expected).length - 1">, </template>
-            </template>
+            <span v-for="(namedConfig, index) in splitList(error.data.expected)" :key="index">
+              <code>{{namedConfig}}</code><span v-if="index !== splitList(error.data.expected).length - 1">, </span>
+            </span>
           </p>
           <p v-else>
             You must give a UI configuration via <code>config</code> query parameter in order to use Monitoror
@@ -215,9 +215,9 @@
 </template>
 
 <script lang="ts">
-import {format} from 'date-fns'
-import {computed, defineComponent, nextTick, watch} from 'vue'
-import {useStore} from 'vuex'
+import { format } from 'date-fns'
+import { computed, defineComponent, nextTick, watch } from 'vue'
+import { useStore } from 'vuex'
 
 import useErrors from '@/composables/useErrors'
 import ConfigErrorId from '@/enums/configErrorId'
@@ -228,11 +228,11 @@ import guessExpectedFieldName from '@/helpers/guessExpectedFieldName'
 import guessExpectedValue from '@/helpers/guessExpectedValue'
 import parsedExtractFieldValue from '@/helpers/parsedExpectedValue'
 import splitList from '@/helpers/splitList'
-import {DEFAULT_CONFIG_NAME} from '@/store'
+import { DEFAULT_CONFIG_NAME } from '@/store'
 
 export default defineComponent({
   name: 'MonitororErrors',
-  setup() {
+  setup () {
     const store = useStore()
     const {
       errors,
@@ -319,7 +319,7 @@ export default defineComponent({
       parsedExtractFieldValue,
       splitList,
     }
-  }
+  },
 })
 </script>
 

@@ -63,8 +63,8 @@
 
 <script lang="ts">
 import useTileValues from '@/composables/useTileMetrics'
-import {defineComponent, computed} from 'vue'
-import {useStore} from 'vuex'
+import { defineComponent, computed } from 'vue'
+import { useStore } from 'vuex'
 
 import DISPLAYABLE_SUBTILE_STATUS from '@/constants/displayableSubtileStatus'
 import useTileCommons from '@/composables/useTileCommons'
@@ -84,8 +84,8 @@ export default defineComponent({
   props: {
     config: {
       type: Object as () => TileConfig,
-      required: true
-    }
+      required: true,
+    },
   },
   setup: function (props) {
     const {

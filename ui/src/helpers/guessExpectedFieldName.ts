@@ -1,6 +1,6 @@
 import StringSimilarity from 'string-similarity'
 
-export default function guessExpectedFieldName(
+export default function guessExpectedFieldName (
   fieldName: string,
   expectedValues: string[],
 ): string | undefined {

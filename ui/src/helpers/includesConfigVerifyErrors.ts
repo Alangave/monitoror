@@ -7,6 +7,6 @@ const CONFIG_NON_VERIFY_ERRORS = [
   ConfigErrorId.UnknownNamedConfig,
 ]
 
-export default function includesConfigVerifyErrors(errors: ConfigError[]): boolean {
+export default function includesConfigVerifyErrors (errors: ConfigError[]): boolean {
   return errors.filter((error) => !CONFIG_NON_VERIFY_ERRORS.includes(error.id)).length > 0
 }

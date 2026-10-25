@@ -32,7 +32,7 @@ import MonitororTileIcon from '@/components/TileIcon.vue'
 import useTileCommons from '@/composables/useTileCommons'
 import TileStatus from '@/enums/tileStatus'
 import TileConfig from '@/types/tileConfig'
-import {computed, defineComponent} from 'vue'
+import { computed, defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'MonitororSubTile',
@@ -45,7 +45,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup (props) {
     const {
       theme,
       type,

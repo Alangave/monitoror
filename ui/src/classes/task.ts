@@ -1,4 +1,4 @@
-import {noop, now} from 'lodash-es'
+import { noop, now } from 'lodash-es'
 
 import TaskType from '@/enums/taskType'
 import TaskOptions from '@/types/taskOptions'
@@ -16,7 +16,7 @@ export default class Task {
   private readonly executor: () => Promise<void>
   private readonly onFailedCallback: (failedAttemptsCount: number) => void
 
-  constructor(
+  constructor (
     {
       id,
       type,
@@ -36,27 +36,27 @@ export default class Task {
     this.onFailedCallback = onFailedCallback
   }
 
-  get time() {
+  get time () {
     return this.internalTime
   }
 
-  public isRunning() {
+  public isRunning () {
     return this.running
   }
 
-  public isDone() {
+  public isDone () {
     return this.done
   }
 
-  public isDead() {
+  public isDead () {
     return this.dead
   }
 
-  public kill() {
+  public kill () {
     this.dead = true
   }
 
-  public async run() {
+  public async run () {
     if (this.isDead()) {
       return
     }
@@ -76,7 +76,7 @@ export default class Task {
     }
   }
 
-  public prepareNextRun() {
+  public prepareNextRun () {
     if (this.isDead() || this.isRunning()) {
       return
     }

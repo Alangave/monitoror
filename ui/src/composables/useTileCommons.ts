@@ -4,11 +4,11 @@ import TileType from '@/enums/tileType'
 import TileBuild from '@/types/tileBuild'
 import TileConfig from '@/types/tileConfig'
 import TileState from '@/types/tileState'
-import {RootState} from '@/store'
-import {computed} from 'vue'
-import {useStore} from 'vuex'
+import { RootState } from '@/store'
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 
-export default function useTileCommons(config: TileConfig) {
+export default function useTileCommons (config: TileConfig) {
   const store = useStore<RootState>()
 
   const type = computed((): TileType => {

@@ -3,12 +3,12 @@ import TileType from '@/enums/tileType'
 import TileAuthor from '@/types/tileAuthor'
 import TileBuild from '@/types/tileBuild'
 import TileMergeRequest from '@/types/tileMergeRequest'
-import {RootState} from '@/store'
-import {addSeconds, differenceInSeconds, format, formatDistance} from 'date-fns'
-import {ComputedRef, computed} from 'vue'
-import {useStore} from 'vuex'
+import { RootState } from '@/store'
+import { addSeconds, differenceInSeconds, format, formatDistance } from 'date-fns'
+import { ComputedRef, computed } from 'vue'
+import { useStore } from 'vuex'
 
-export default function useTileBuild(type: ComputedRef<TileType>, status: ComputedRef<TileStatus | undefined>, build: ComputedRef<TileBuild | undefined>) {
+export default function useTileBuild (type: ComputedRef<TileType>, status: ComputedRef<TileStatus | undefined>, build: ComputedRef<TileBuild | undefined>) {
   const store = useStore<RootState>()
 
   const now = computed((): Date => {

@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent} from 'vue'
+import { computed, defineComponent } from 'vue'
 
 import TileIconId from '@/enums/tileIconId'
 import TileType from '@/enums/tileType'
@@ -20,7 +20,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup (props) {
     const iconId = computed(() => {
       switch (props.tileType) {
         case TileType.AzureDevOpsBuild:
@@ -63,13 +63,15 @@ export default defineComponent({
 
         case TileType.UptimecomCheck:
           return TileIconId.Uptimecom
+        default:
+          return TileIconId.Unknown
       }
     })
 
     return {
       iconId,
     }
-  }
+  },
 })
 </script>
 

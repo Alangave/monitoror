@@ -4,7 +4,7 @@ import jsonSyntaxColor from '@/helpers/jsonSyntaxColor'
 import splitList from '@/helpers/splitList'
 import ConfigError from '@/types/configError'
 
-export default function formatConfigExtract(configError: ConfigError): string {
+export default function formatConfigExtract (configError: ConfigError): string {
   let configExtract = configError.data.configExtract
   if (configExtract === undefined) {
     return ''

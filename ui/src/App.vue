@@ -49,8 +49,8 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, nextTick, onMounted, onBeforeUnmount, ref, Ref} from 'vue'
-import {useStore} from 'vuex'
+import { computed, defineComponent, nextTick, onMounted, onBeforeUnmount, ref, Ref } from 'vue'
+import { useStore } from 'vuex'
 
 import MonitororErrors from '@/components/Errors.vue'
 import MonitororTile from '@/components/Tile.vue'
@@ -67,7 +67,7 @@ export default defineComponent({
     MonitororTile,
     MonitororWelcome,
   },
-  setup() {
+  setup () {
     const store = useStore()
     const {
       hasErrors,
@@ -138,7 +138,6 @@ export default defineComponent({
 
       return loadingProgress.value < 1 || !isOnline || hasErrors.value
     })
-
 
     const shouldShowCursorTimeout: Ref<ReturnType<typeof setTimeout> | undefined> = ref()
     const shouldDisableTransitionsTimeout: Ref<ReturnType<typeof setTimeout> | undefined> = ref()
@@ -219,7 +218,7 @@ export default defineComponent({
       // methods
       resetShowCursorTimeout,
     }
-  }
+  },
 })
 </script>
 

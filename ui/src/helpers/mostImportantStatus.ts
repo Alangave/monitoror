@@ -11,6 +11,6 @@ const ORDERED_TILE_STATUS = [
   TileStatus.Running,
 ]
 
-export default function mostImportantStatus(status1: TileStatus, status2: TileStatus): TileStatus {
+export default function mostImportantStatus (status1: TileStatus, status2: TileStatus): TileStatus {
   return ORDERED_TILE_STATUS.indexOf(status1) < ORDERED_TILE_STATUS.indexOf(status2) ? status2 : status1
 }

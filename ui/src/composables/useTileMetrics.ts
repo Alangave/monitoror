@@ -1,9 +1,9 @@
 import TileValueUnit from '@/enums/tileValueUnit'
 import TileMetrics from '@/types/tileMetrics'
 import TileState from '@/types/tileState'
-import {computed, ComputedRef} from 'vue'
+import { computed, ComputedRef } from 'vue'
 
-export default function useTileMetrics(state: ComputedRef<TileState | undefined>) {
+export default function useTileMetrics (state: ComputedRef<TileState | undefined>) {
   const metrics = computed((): TileMetrics | undefined => {
     if (state.value === undefined) {
       return

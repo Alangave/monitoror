@@ -98,30 +98,28 @@
       <h2 class="c-monitoror-welcome--subtitle">Choose a configuration</h2>
 
       <div class="c-monitoror-welcome--content c-monitoror-welcome--content__choose-configuration">
-        <template v-for="configMetadata in configList">
-          <a :href="configMetadata.uiUrl" class="c-monitoror-welcome--button c-monitoror-welcome--button__card">
-            <code>{{configMetadata.name}}</code>
-            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-              <!-- Bind href value to avoid Vite transforms -->
-              <use :xlink:href="'./icons.svg#cog'"/>
-            </svg>
-          </a>
-        </template>
+        <a v-for="configMetadata in configList" :key="configMetadata.name" :href="configMetadata.uiUrl" class="c-monitoror-welcome--button c-monitoror-welcome--button__card">
+          <code>{{configMetadata.name}}</code>
+          <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <!-- Bind href value to avoid Vite transforms -->
+            <use :xlink:href="'./icons.svg#cog'"/>
+          </svg>
+        </a>
       </div>
     </template>
   </div>
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, ref, onMounted} from 'vue'
-import {useStore} from 'vuex'
+import { computed, defineComponent, ref, onMounted } from 'vue'
+import { useStore } from 'vuex'
 
 import Route from '@/enums/route'
 import ConfigMetadata from '@/types/configMetadata'
 
 export default defineComponent({
   name: 'MonitororWelcome',
-  setup() {
+  setup () {
     const store = useStore()
     const currentStep = ref(1)
     const shouldHaveScroll = ref(false)
@@ -169,7 +167,7 @@ export default defineComponent({
       configList,
       shouldShowWelcomeNextStep,
     }
-  }
+  },
 })
 </script>
 
