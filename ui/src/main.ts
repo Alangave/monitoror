@@ -12,4 +12,4 @@ if (isMacOs) {
 // @ts-ignore
 const app = createApp(MonitororApp)
 app.use(store)
-app.mount('#app-root')
+app.mount('#app')
