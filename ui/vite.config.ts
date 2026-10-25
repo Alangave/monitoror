@@ -1,6 +1,6 @@
 import template from 'lodash.template'
 import * as path from 'path'
-import {UserConfig} from 'vite'
+import { UserConfig } from 'vite'
 import tsResolver from 'vite-tsconfig-paths'
 import vue from '@vitejs/plugin-vue'
 
@@ -28,7 +28,7 @@ const config: UserConfig = {
   indexHtmlTransforms: [
     {
       apply: 'pre',
-      transform({code}) {
+      transform ({ code }) {
         const compiled = template(code)
         return compiled({
           VITE_APP_TITLE: process.env.VITE_APP_TITLE,
@@ -36,9 +36,9 @@ const config: UserConfig = {
           BASE_URL,
         })
       },
-    }
+    },
   ],
-  configureServer: ({root, app, watcher}) => {
+  configureServer: ({ root, app, watcher }) => {
     watcher.add(path.resolve(root, './public/**/*'))
     const publicPath = path.resolve(root, './public')
     watcher.on('change', function (path) {
