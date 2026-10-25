@@ -1,15 +1,25 @@
+import * as path from 'path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url'
+
+const BASE_URL = './'
 
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@': path.resolve(__dirname, './src'),
     },
   },
-  base: './',
+  optimizeDeps: {
+    include: [
+      'ts-md5/dist/md5',
+    ],
+    exclude: [
+      'ts-md5',
+    ],
+  },
+  base: BASE_URL,
   port: 8000,
   server: {
     proxy: {
@@ -19,5 +29,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    assetsDir: 'assets',
+  },
+  configureServer: ({ root, app, watcher }) => {
+    watcher.add(path.resolve(root, './public/**/*'))
+    const publicPath = path.resolve(root, './public')
+    watcher.on('change', function (path) {
+      console.log(path)
+      if (path.startsWith(publicPath)) {
+        watcher.send({
+          type: 'full-reload',
+          path,
+        })
+      }
+    })
   },
 })
