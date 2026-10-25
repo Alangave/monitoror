@@ -1,6 +1,6 @@
 module github.com/monitoror/monitoror
 
-go 1.27
+go 1.24
 
 require (
 	github.com/AlekSi/pointer v1.1.0
