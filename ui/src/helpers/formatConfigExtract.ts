@@ -4,12 +4,7 @@ import jsonSyntaxColor from '@/helpers/jsonSyntaxColor'
 import splitList from '@/helpers/splitList'
 import ConfigError from '@/types/configError'
 
-function escapeHtml(value: string): string {
-  // Replace with the HTML Entity of the character
-  return value.replace(/[\u00A0-\u9999<>&]/gim, (match) => `&#${match.charCodeAt(0)};`)
-}
-
-export default function formatConfigExtract(configError: ConfigError): string {
+export default function formatConfigExtract (configError: ConfigError): string {
   let configExtract = configError.data.configExtract
   if (configExtract === undefined) {
     return ''
@@ -29,13 +24,17 @@ export default function formatConfigExtract(configError: ConfigError): string {
     JSON.parse(configExtract)
   } catch (err) {
     // Escape special characters to display the config as text, not as HTML
-    const sanitizedConfigExtract = escapeHtml(configExtract).replace(/\\\\/g, '\\')
+    const sanitizedConfigExtract = configExtract
+      .replace(/[\u00A0-\u9999<>&]/gim, (match) => {
+        // Replace with the HTML Entity of the character
+        return `&#${match.charCodeAt(0)};`
+      })
+      .replace(/\\\\/g, '\\')
 
     return jsonSyntaxColor(sanitizedConfigExtract)
   }
 
-  // Output is injected with v-html: escape it before adding highlight markup
-  const formattedConfigExtract = escapeHtml(JSON.stringify(JSON.parse(configExtract), null, 2))
+  const formattedConfigExtract = JSON.stringify(JSON.parse(configExtract), null, 2)
   let html = formattedConfigExtract.replace(/\\\\/g, '\\')
 
   if (highlight) {
@@ -48,9 +47,9 @@ export default function formatConfigExtract(configError: ConfigError): string {
     }
 
     if (configExtractHighlight !== undefined) {
-      let formattedConfigExtractHighlight = escapeHtml(configExtractHighlight)
+      let formattedConfigExtractHighlight = configExtractHighlight
       try {
-        formattedConfigExtractHighlight = escapeHtml(JSON.stringify(JSON.parse(configExtractHighlight), null, 2))
+        formattedConfigExtractHighlight = JSON.stringify(JSON.parse(configExtractHighlight), null, 2)
       } catch (err) {
         // Escape unescaped char to be a string used as regex
         // \w => \\w

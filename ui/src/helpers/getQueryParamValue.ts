@@ -1,4 +1,4 @@
-export default function getQueryParamValue(
+export default function getQueryParamValue (
   queryParamName: string,
   defaultValue?: string,
 ): string | undefined {

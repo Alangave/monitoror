@@ -1,9 +1,9 @@
 import includesConfigVerifyErrors from '@/helpers/includesConfigVerifyErrors'
 import ConfigError from '@/types/configError'
-import {computed} from 'vue'
-import {useStore} from 'vuex'
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 
-export default function useErrors() {
+export default function useErrors () {
   const store = useStore()
 
   const errors = computed((): ConfigError[] => {

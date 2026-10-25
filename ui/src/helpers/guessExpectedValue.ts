@@ -1,7 +1,7 @@
 import parsedExtractFieldValue from '@/helpers/parsedExpectedValue'
 import StringSimilarity from 'string-similarity'
 
-export default function guessExpectedValue(
+export default function guessExpectedValue (
   configExtract: string,
   fieldName: string,
   expectedValues: string[],

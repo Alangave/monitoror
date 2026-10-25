@@ -1,7 +1,7 @@
 import TileStatus from '@/enums/tileStatus'
 import TileState from '@/types/tileState'
 
-export default function getSubTilePreviousOrStatus(subTileState?: TileState): TileStatus {
+export default function getSubTilePreviousOrStatus (subTileState?: TileState): TileStatus {
   if (subTileState === undefined) {
     return TileStatus.Unknown
   }

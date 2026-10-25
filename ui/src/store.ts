@@ -1,7 +1,7 @@
 import axios from 'axios'
-import {now} from 'lodash-es'
-import {Md5 as md5} from 'ts-md5/src/md5'
-import {createStore, StoreOptions} from 'vuex'
+import { now } from 'lodash-es'
+import { Md5 as md5 } from 'ts-md5/src/md5'
+import { createStore, StoreOptions } from 'vuex'
 
 import DISPLAYABLE_SUBTILE_STATUS from '@/constants/displayableSubtileStatus'
 
@@ -65,7 +65,7 @@ const store: StoreOptions<RootState> = {
     configList: [],
   },
   getters: {
-    apiBaseUrl(): string {
+    apiBaseUrl (): string {
       const defaultApiBaseUrl = window.location.origin + window.location.pathname
       let apiBaseUrl = getQueryParamValue(QUERY_PARAM_KEYS.API_BASE_URL, defaultApiBaseUrl) as string
 
@@ -73,21 +73,21 @@ const store: StoreOptions<RootState> = {
 
       return apiBaseUrl
     },
-    configParam(): string {
+    configParam (): string {
       return getQueryParamValue(QUERY_PARAM_KEYS.CONFIG, DEFAULT_CONFIG_NAME) as string
     },
-    infoUrl(state, getters): string {
+    infoUrl (state, getters): string {
       return getters.apiBaseUrl + API_BASE_PATH + INFO_PATH
     },
-    configProxyUrl(state, getters): string {
+    configProxyUrl (state, getters): string {
       return getters.apiBaseUrl + API_BASE_PATH + CONFIGS_PATH
     },
-    proxyfiedConfigUrl(state, getters): string | undefined {
+    proxyfiedConfigUrl (state, getters): string | undefined {
       const urlEncodedConfigParam = encodeURIComponent(getters.configParam)
 
       return `${getters.configProxyUrl}/${urlEncodedConfigParam}`
     },
-    currentRoute(): Route | undefined {
+    currentRoute (): Route | undefined {
       const queryHash = window.location.hash.replace(/^#/, '')
       let route
 
@@ -97,7 +97,7 @@ const store: StoreOptions<RootState> = {
 
       return route
     },
-    theme(): Theme {
+    theme (): Theme {
       let theme = Theme.Default
       const queryTheme = getQueryParamValue(QUERY_PARAM_KEYS.THEME, theme) as string
 
@@ -107,7 +107,7 @@ const store: StoreOptions<RootState> = {
 
       return theme
     },
-    tileStateKeys(state): string[] {
+    tileStateKeys (state): string[] {
       const tileStateKeys: string[] = []
       state.tiles.forEach((tile: TileConfig) => {
         tileStateKeys.push(tile.stateKey)
@@ -122,18 +122,18 @@ const store: StoreOptions<RootState> = {
 
       return tileStateKeys
     },
-    taskIds(state): string[] {
+    taskIds (state): string[] {
       return state.tasks.map((task: Task) => task.id)
     },
-    loadedTilesCount(state): number {
+    loadedTilesCount (state): number {
       const loadedTilesCount = Object.keys(state.tilesState).length
 
       return loadedTilesCount
     },
-    loadableTilesCount(state): number {
+    loadableTilesCount (state): number {
       const loadableTilesStateKeys: string[] = []
 
-      function addLoadableTileStateKey(stateKey: string) {
+      function addLoadableTileStateKey (stateKey: string) {
         if (loadableTilesStateKeys.includes(stateKey)) {
           return
         }
@@ -158,7 +158,7 @@ const store: StoreOptions<RootState> = {
 
       return loadableTilesCount
     },
-    loadingProgress(state, getters): number {
+    loadingProgress (state, getters): number {
       const loadingProgress = getters.loadedTilesCount / getters.loadableTilesCount
 
       if (!loadingProgress) {
@@ -167,7 +167,7 @@ const store: StoreOptions<RootState> = {
 
       return loadingProgress
     },
-    hasUnknownDefaultConfigError(state, getters): boolean {
+    hasUnknownDefaultConfigError (state, getters): boolean {
       if (state.errors.length === 0) {
         return false
       }
@@ -179,7 +179,7 @@ const store: StoreOptions<RootState> = {
 
       return isDefaultConfig && isUnknownNamedConfigError
     },
-    isNewUser(state, getters): boolean {
+    isNewUser (state, getters): boolean {
       if (!getters.hasUnknownDefaultConfigError) {
         return false
       }
@@ -189,7 +189,7 @@ const store: StoreOptions<RootState> = {
 
       return !hasNamedConfig
     },
-    shouldShowWelcomePage(state, getters): boolean {
+    shouldShowWelcomePage (state, getters): boolean {
       const welcomePageRoutes = [
         Route.Welcome,
         Route.ChooseConfiguration,
@@ -198,17 +198,17 @@ const store: StoreOptions<RootState> = {
 
       return isOnWelcomePageRoute || getters.isNewUser || getters.hasUnknownDefaultConfigError
     },
-    shouldInit(state, getters): boolean {
+    shouldInit (state, getters): boolean {
       const isOnChooseConfigurationPageRoute = Route.ChooseConfiguration === getters.currentRoute
 
       return !isOnChooseConfigurationPageRoute
     },
   },
   mutations: {
-    setAppVersion(state, payload: string): void {
+    setAppVersion (state, payload: string): void {
       state.appVersion = payload
     },
-    setConfig(state, payload: Config): void {
+    setConfig (state, payload: Config): void {
       state.configVersion = payload.version
       state.columns = payload.columns
       if (payload.zoom !== undefined) {
@@ -216,33 +216,33 @@ const store: StoreOptions<RootState> = {
       }
       state.tiles = payload.tiles
     },
-    setConfigList(state, payload: ConfigMetadata[]): void {
+    setConfigList (state, payload: ConfigMetadata[]): void {
       state.configList = payload
     },
-    setErrors(state, payload: ConfigError[]): void {
+    setErrors (state, payload: ConfigError[]): void {
       state.errors = payload
     },
-    setTileState(state, payload: { tileStateKey: string, tileState: TileState }): void {
+    setTileState (state, payload: { tileStateKey: string, tileState: TileState }): void {
       state.tilesState[payload.tileStateKey] = payload.tileState
     },
-    setOnline(state, payload: boolean): void {
+    setOnline (state, payload: boolean): void {
       state.online = payload
     },
-    setTasks(state, payload: Task[]): void {
+    setTasks (state, payload: Task[]): void {
       state.tasks = payload
     },
-    addTask(state, payload: Task): void {
+    addTask (state, payload: Task): void {
       state.tasks.push(payload)
     },
-    setLastRefreshDate(state, payload: Date): void {
+    setLastRefreshDate (state, payload: Date): void {
       state.lastRefreshDate = payload
     },
-    setNow(state, payload: Date): void {
+    setNow (state, payload: Date): void {
       state.now = payload
     },
   },
   actions: {
-    async autoUpdate({commit, state, getters}) {
+    async autoUpdate ({ commit, state, getters }) {
       return axios.get(getters.infoUrl)
         .then((response) => {
           const info: Info = response.data
@@ -257,7 +257,7 @@ const store: StoreOptions<RootState> = {
           }
         })
     },
-    async fetchConfigList({commit, getters}) {
+    async fetchConfigList ({ commit, getters }) {
       return axios.get(getters.configProxyUrl)
         .then((response) => {
           if (response.data === null) {
@@ -282,7 +282,7 @@ const store: StoreOptions<RootState> = {
           commit('setConfigList', configList)
         })
     },
-    async fetchConfiguration({commit, state, getters, dispatch}) {
+    async fetchConfiguration ({ commit, state, getters, dispatch }) {
       const hydrateTile = (tile: TileConfig, groupTile?: TileConfig) => {
         // Create a identifier based on tile configuration
         tile.stateKey = tile.type + '_' + md5.hashStr(JSON.stringify(tile))
@@ -292,7 +292,7 @@ const store: StoreOptions<RootState> = {
           tile.url = getters.apiBaseUrl + tile.url
 
           // Create a task for this tile
-          dispatch('createRefreshTileTask', {tile, groupTile})
+          dispatch('createRefreshTileTask', { tile, groupTile })
         }
 
         // Set stateKey on group subTiles
@@ -326,7 +326,7 @@ const store: StoreOptions<RootState> = {
           }
         })
     },
-    createRefreshTileTask({dispatch}, {tile, groupTile}: { tile: TileConfig, groupTile?: TileConfig }) {
+    createRefreshTileTask ({ dispatch }, { tile, groupTile }: { tile: TileConfig, groupTile?: TileConfig }) {
       dispatch('addTask', {
         id: tile.stateKey,
         type: TaskType.RefreshTile,
@@ -341,7 +341,7 @@ const store: StoreOptions<RootState> = {
         initialDelay: Math.random() * (tile.initialMaxDelay || 0),
       })
     },
-    async refreshTile({commit}, tile: TileConfig) {
+    async refreshTile ({ commit }, tile: TileConfig) {
       if (!tile.url) {
         return Promise.resolve()
       }
@@ -350,10 +350,10 @@ const store: StoreOptions<RootState> = {
         .then(async (response) => {
           const tileState = response.data
 
-          commit('setTileState', {tileStateKey: tile.stateKey, tileState})
+          commit('setTileState', { tileStateKey: tile.stateKey, tileState })
         })
     },
-    refreshGroup({state, commit}, groupTile: TileConfig) {
+    refreshGroup ({ state, commit }, groupTile: TileConfig) {
       if (!groupTile.tiles) {
         return
       }
@@ -381,12 +381,12 @@ const store: StoreOptions<RootState> = {
         message: groupMessage,
       }
 
-      commit('setTileState', {tileStateKey: groupTile.stateKey, tileState: groupState})
+      commit('setTileState', { tileStateKey: groupTile.stateKey, tileState: groupState })
     },
-    updateNetworkState({commit}) {
+    updateNetworkState ({ commit }) {
       commit('setOnline', navigator.onLine)
     },
-    addTask({getters, commit}, taskOptions: TaskOptions) {
+    addTask ({ getters, commit }, taskOptions: TaskOptions) {
       // Avoid adding multiple task with the same ID
       if (getters.taskIds.includes(taskOptions.id)) {
         return
@@ -394,7 +394,7 @@ const store: StoreOptions<RootState> = {
 
       commit('addTask', new Task(taskOptions))
     },
-    runTasks({state, dispatch}) {
+    runTasks ({ state, dispatch }) {
       const nowTime = now()
       const shouldRunTask = (task: Task) => !task.isDone() && !task.isRunning() && task.time <= nowTime
 
@@ -405,8 +405,8 @@ const store: StoreOptions<RootState> = {
         dispatch('updateTasks')
       })
     },
-    updateTasks({commit, state}) {
-      const {taskList, hasChanged} = state.tasks.reduce(
+    updateTasks ({ commit, state }) {
+      const { taskList, hasChanged } = state.tasks.reduce(
         (previousValue: { taskList: Task[], hasChanged: boolean }, task: Task) => {
           // Remove dead tasks from task list
           if (task.isDead()) {
@@ -423,18 +423,18 @@ const store: StoreOptions<RootState> = {
 
           return previousValue
         },
-        {taskList: [], hasChanged: false},
+        { taskList: [], hasChanged: false },
       )
 
       if (hasChanged) {
         commit('setTasks', taskList)
       }
     },
-    killAllTasks({commit, state}) {
+    killAllTasks ({ commit, state }) {
       state.tasks.map((task: Task) => task.kill())
       commit('setTasks', [])
     },
-    init({state, commit, dispatch}) {
+    init ({ state, commit, dispatch }) {
       // Run auto-update each minute
       dispatch('addTask', {
         id: 'autoUpdate',
