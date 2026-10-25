@@ -172,31 +172,3 @@ jobs:
           tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    name: Release DockerHub
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-
-      - name: Init
-        id: init
-        run: |
-          VERSION=$(cat VERSION)
-          echo ::set-output name=VERSION::$VERSION
-          echo ::set-output name=MINOR_VERSION::$(echo $VERSION | cut -d "." -f 1,2)
-          echo ::set-output name=MAJOR_VERSION::$(echo $VERSION | cut -d "." -f 1)
-
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: monitoror-binaries
-          path: binaries
-
-      - name: Build and push Docker images to JFrog
-        run: |
-          echo "Binaries are available in the artifact 'monitoror-binaries'"
-          echo "They can be downloaded and pushed to JFrog manually"
-          echo "Docker build can then use these binaries from JFrog"
