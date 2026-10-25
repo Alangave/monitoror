@@ -72,9 +72,9 @@ jobs:
         working-directory: ui
         run: npm ci
 
-      - name: tests
+      - name: lint
         working-directory: ui
-        run: npm run test
+        run: npm run lint
 
       - name: coverage
         uses: codecov/codecov-action@v1.0.4
@@ -111,6 +111,10 @@ jobs:
       - name: ui / install
         working-directory: ui
         run: npm ci
+
+      - name: ui / lint
+        working-directory: ui
+        run: npm run lint
 
       - name: core / install
         run: |
