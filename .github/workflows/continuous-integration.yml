@@ -3,6 +3,7 @@ name: continuous-integration
 
 # Trigger build on master, tags and pull requests
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'master'
