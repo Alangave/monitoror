@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "columns": 3,
+  "tiles": [
+    {"type": "UPTIME", "label": "Monitoror", "params": {"url": "https://monitoror.com", "interval": 60}},
+    {"type": "UPTIME", "label": "Example (keyword)", "params": {"url": "https://example.com", "keyword": "Example", "interval": 60}},
+    {"type": "UPTIME", "label": "Local API", "params": {"url": "http://127.0.0.1:8080/api/healthz", "interval": 30}}
+  ]
+}
