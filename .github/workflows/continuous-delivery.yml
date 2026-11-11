@@ -5,7 +5,8 @@ name: continuous-delivery
 # All binary builds are now handled in continuous-integration workflow
 # which generates artifacts that can be pushed to JFrog and used in Docker builds
 
-on: []
+on:
+  workflow_dispatch:
 
 jobs:
   disabled:
