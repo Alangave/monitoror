@@ -3,7 +3,11 @@
   "columns": 3,
   "tiles": [
     {"type": "UPTIME", "label": "Monitoror", "params": {"url": "https://monitoror.com", "interval": 60}},
-    {"type": "UPTIME", "label": "Example (keyword)", "params": {"url": "https://example.com", "keyword": "Example", "interval": 60}},
-    {"type": "UPTIME", "label": "Local API", "params": {"url": "http://127.0.0.1:8080/api/healthz", "interval": 30}}
+    {"type": "GROUP", "label": "Local", "tiles": [
+      {"type": "UPTIME", "label": "API", "params": {"url": "http://127.0.0.1:8080/api/healthz", "interval": 30}},
+      {"type": "UPTIME", "label": "UI", "params": {"url": "http://127.0.0.1:8080/", "interval": 30}}
+    ]},
+    {"type": "EMPTY"},
+    {"type": "UPTIME", "label": "Example (keyword)", "params": {"url": "https://example.com", "keyword": "Example", "interval": 60}}
   ]
 }

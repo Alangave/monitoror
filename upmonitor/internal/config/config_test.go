@@ -21,7 +21,12 @@ func TestLoadValidConfig(t *testing.T) {
 		"columns": 3,
 		"tiles": [
 			{"type": "UPTIME", "label": "Blog", "params": {"url": "https://example.com"}},
-			{"type": "uptime", "params": {"url": "http://example.org", "method": "HEAD", "interval": 10, "timeout": 500, "expectedStatus": [200, 301], "keyword": "hello"}}
+			{"type": "uptime", "params": {"url": "http://example.org", "method": "HEAD", "interval": 10, "timeout": 500, "expectedStatus": [200, 301], "keyword": "hello"}},
+			{"type": "GROUP", "label": "Prod", "tiles": [
+				{"type": "UPTIME", "label": "API", "params": {"url": "https://api.example.com"}},
+				{"type": "UPTIME", "label": "Web", "params": {"url": "https://web.example.com"}}
+			]},
+			{"type": "EMPTY"}
 		]
 	}`)
 
@@ -33,8 +38,8 @@ func TestLoadValidConfig(t *testing.T) {
 	if cfg.Columns != 3 {
 		t.Errorf("Columns = %d, want 3", cfg.Columns)
 	}
-	if len(cfg.Tiles) != 2 {
-		t.Fatalf("len(Tiles) = %d, want 2", len(cfg.Tiles))
+	if len(cfg.Tiles) != 4 {
+		t.Fatalf("len(Tiles) = %d, want 4", len(cfg.Tiles))
 	}
 
 	first := cfg.Tiles[0]
@@ -57,6 +62,33 @@ func TestLoadValidConfig(t *testing.T) {
 	}
 	if second.ID == first.ID {
 		t.Error("distinct tiles must have distinct IDs")
+	}
+
+	group := cfg.Tiles[2]
+	if group.Type != TypeGroup {
+		t.Errorf("group Type = %q, want %q", group.Type, TypeGroup)
+	}
+	if len(group.Tiles) != 2 {
+		t.Fatalf("len(group.Tiles) = %d, want 2", len(group.Tiles))
+	}
+	for i, child := range group.Tiles {
+		if child.Type != TypeUptime {
+			t.Errorf("group child %d Type = %q, want %q", i, child.Type, TypeUptime)
+		}
+		if child.ID == "" {
+			t.Errorf("group child %d ID should be computed", i)
+		}
+	}
+	if group.Tiles[0].ID == group.Tiles[1].ID {
+		t.Error("group children must have distinct IDs")
+	}
+
+	empty := cfg.Tiles[3]
+	if empty.Type != TypeEmpty {
+		t.Errorf("empty Type = %q, want %q", empty.Type, TypeEmpty)
+	}
+	if empty.ID == "" {
+		t.Error("empty tile ID should be set")
 	}
 }
 
@@ -94,6 +126,14 @@ func TestLoadErrors(t *testing.T) {
 			{"type": "UPTIME", "params": {"url": "https://example.com"}},
 			{"type": "UPTIME", "params": {"url": "https://example.com"}}
 		]}`},
+		{"group without label", `{"tiles": [{"type": "GROUP", "tiles": [{"type": "UPTIME", "params": {"url": "https://example.com"}}]}]}`},
+		{"group without sub-tiles", `{"tiles": [{"type": "GROUP", "label": "Prod", "tiles": []}]}`},
+		{"group with bad sub-tile", `{"tiles": [{"type": "GROUP", "label": "Prod", "tiles": [{"type": "EMPTY"}]}]}`},
+		{"group with invalid sub-tile params", `{"tiles": [{"type": "GROUP", "label": "Prod", "tiles": [{"type": "UPTIME", "params": {}}]}]}`},
+		{"duplicate nested sub-tile", `{"tiles": [
+			{"type": "UPTIME", "params": {"url": "https://example.com"}},
+			{"type": "GROUP", "label": "Prod", "tiles": [{"type": "UPTIME", "params": {"url": "https://example.com"}}]}
+		]}`},
 	}
 
 	for _, tt := range tests {
@@ -103,6 +143,22 @@ func TestLoadErrors(t *testing.T) {
 				t.Errorf("Load() should fail for %s", tt.name)
 			}
 		})
+	}
+}
+
+func TestLoadMultipleEmptyTiles(t *testing.T) {
+	path := writeTempConfig(t, `{"tiles": [
+		{"type": "EMPTY"},
+		{"type": "UPTIME", "params": {"url": "https://example.com"}},
+		{"type": "EMPTY"}
+	]}`)
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.Tiles[0].ID == cfg.Tiles[2].ID {
+		t.Errorf("EMPTY tiles must have distinct IDs, got %q twice", cfg.Tiles[0].ID)
 	}
 }
 

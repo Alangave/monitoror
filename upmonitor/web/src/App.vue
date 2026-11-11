@@ -1,7 +1,10 @@
 <template>
   <div class="c-app">
     <div v-if="store.config" class="c-app--tiles-container" :style="gridStyle">
-      <uptime-tile v-for="tile in store.config.tiles" :key="tile.id" :info="tile"></uptime-tile>
+      <template v-for="tile in store.config.tiles" :key="tile.id">
+        <div v-if="tile.type === 'EMPTY'" class="c-app--empty-tile"></div>
+        <uptime-tile v-else :info="tile"></uptime-tile>
+      </template>
     </div>
 
     <div v-else class="c-app--message">
@@ -56,6 +59,11 @@ export default defineComponent({
   min-height: 100vh;
   font-size: 1.2rem;
   color: #888;
+}
+
+.c-app--empty-tile {
+  aspect-ratio: 2 / 1;
+  border-radius: 4px;
 }
 
 .c-app--connection {

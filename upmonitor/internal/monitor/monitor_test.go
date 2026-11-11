@@ -190,3 +190,93 @@ func TestSubscribeReceivesUpdates(t *testing.T) {
 		t.Fatal("timed out waiting for a broadcast")
 	}
 }
+
+func TestMonitorGroupAggregation(t *testing.T) {
+	okServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer okServer.Close()
+
+	failServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer failServer.Close()
+
+	cfg := &config.Config{
+		Version: "1.0",
+		Columns: 2,
+		Tiles: []config.TileConfig{
+			{
+				Type:  config.TypeGroup,
+				Label: "Prod",
+				Tiles: []config.TileConfig{
+					{Type: config.TypeUptime, Label: "OK", Params: config.Params{URL: okServer.URL, TimeoutMs: 1000, IntervalS: config.MinIntervalS}},
+					{Type: config.TypeUptime, Label: "KO", Params: config.Params{URL: failServer.URL, TimeoutMs: 1000, IntervalS: config.MinIntervalS}},
+				},
+			},
+		},
+	}
+
+	m := mustMonitor(t, cfg, Options{HistorySize: config.HistorySize})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	m.Start(ctx)
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		states := m.Snapshot()
+		if len(states) != 1 {
+			t.Fatalf("len(states) = %d, want 1 (only the group holds state)", len(states))
+		}
+		group := states[0]
+		if group.Type != config.TypeGroup {
+			t.Fatalf("Type = %q, want %q", group.Type, config.TypeGroup)
+		}
+		if group.Status == StatusFailed && group.Uptime == 0.5 {
+			if len(group.Tiles) != 2 {
+				t.Errorf("len(Tiles) = %d, want 2 sub-tile IDs", len(group.Tiles))
+			}
+			if group.Since == 0 {
+				t.Error("group Since should be set from sub-tiles")
+			}
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatal("timed out waiting for aggregated group state (want FAILED, uptime 0.5)")
+}
+
+func TestMonitorEmptyTileHoldsNoState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	cfg := &config.Config{
+		Version: "1.0",
+		Columns: 2,
+		Tiles: []config.TileConfig{
+			{Type: config.TypeEmpty},
+			{Type: config.TypeUptime, Label: "Test", Params: config.Params{URL: server.URL, TimeoutMs: 1000, IntervalS: config.MinIntervalS}},
+			{Type: config.TypeEmpty},
+		},
+	}
+
+	m := mustMonitor(t, cfg, Options{HistorySize: config.HistorySize})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	m.Start(ctx)
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		states := m.Snapshot()
+		if len(states) == 1 {
+			if states[0].Type != config.TypeUptime {
+				t.Errorf("Type = %q, want %q", states[0].Type, config.TypeUptime)
+			}
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("Snapshot should hold exactly one state (EMPTY tiles excluded), got %d", len(m.Snapshot()))
+}

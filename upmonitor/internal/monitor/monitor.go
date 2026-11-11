@@ -1,5 +1,6 @@
 // Package monitor runs periodic uptime checks for every configured tile,
-// keeps a bounded history per tile and broadcasts state updates to subscribers.
+// keeps a bounded history per tile, aggregates GROUP tiles
+// and broadcasts state updates to subscribers.
 package monitor
 
 import (
@@ -34,6 +35,7 @@ type Check struct {
 }
 
 // TileState is the public state of a tile, sent to the UI.
+// GROUP tiles carry their sub-tile IDs in Tiles and an aggregated status.
 type TileState struct {
 	ID             string      `json:"id"`
 	Type           string      `json:"type"`
@@ -43,7 +45,8 @@ type TileState struct {
 	ResponseTimeMs int64       `json:"responseTimeMs"`
 	Uptime         float64     `json:"uptime"` // 0..1 over the retained history
 	Since          int64       `json:"since"`  // unix ms, last status change
-	History        []Check     `json:"history"`
+	Tiles          []string    `json:"tiles,omitempty"`
+	History        []Check     `json:"history,omitempty"`
 }
 
 // Options tunes the monitor.
@@ -69,6 +72,11 @@ type tile struct {
 	since   time.Time
 }
 
+type group struct {
+	cfg      config.TileConfig
+	childIDs []string
+}
+
 // Monitor owns all tile checkers and the subscriber registry.
 type Monitor struct {
 	cfg     *config.Config
@@ -76,6 +84,7 @@ type Monitor struct {
 
 	mu          sync.RWMutex
 	tiles       map[string]*tile
+	groups      map[string]*group
 	subscribers map[chan []byte]struct{}
 }
 
@@ -89,17 +98,34 @@ func New(cfg *config.Config, options Options) (*Monitor, error) {
 	m := &Monitor{
 		cfg:         cfg,
 		options:     options,
-		tiles:       make(map[string]*tile, len(cfg.Tiles)),
+		tiles:       make(map[string]*tile),
+		groups:      make(map[string]*group),
 		subscribers: make(map[chan []byte]struct{}),
 	}
-	for _, tileCfg := range cfg.Tiles {
-		m.tiles[tileCfg.ID] = &tile{
-			cfg:    tileCfg,
-			client: buildClient(tileCfg.Params),
-			status: StatusPending,
-			since:  time.Now(),
+
+	var register func(tiles []config.TileConfig)
+	register = func(tiles []config.TileConfig) {
+		for _, tileCfg := range tiles {
+			switch tileCfg.Type {
+			case config.TypeUptime:
+				m.tiles[tileCfg.ID] = &tile{
+					cfg:    tileCfg,
+					client: buildClient(tileCfg.Params),
+					status: StatusPending,
+					since:  time.Now(),
+				}
+			case config.TypeGroup:
+				childIDs := make([]string, 0, len(tileCfg.Tiles))
+				for _, child := range tileCfg.Tiles {
+					childIDs = append(childIDs, child.ID)
+				}
+				m.groups[tileCfg.ID] = &group{cfg: tileCfg, childIDs: childIDs}
+				register(tileCfg.Tiles)
+			}
 		}
 	}
+	register(cfg.Tiles)
+
 	return m, nil
 }
 
@@ -113,7 +139,7 @@ func buildClient(params config.Params) *http.Client {
 	return &http.Client{Transport: transport}
 }
 
-// Start launches one checker goroutine per tile. It returns immediately.
+// Start launches one checker goroutine per UPTIME tile. It returns immediately.
 func (m *Monitor) Start(ctx context.Context) {
 	for _, t := range m.tiles {
 		go m.runTile(ctx, t)
@@ -151,9 +177,28 @@ func (m *Monitor) check(ctx context.Context, t *tile) {
 		t.since = time.UnixMilli(check.At)
 	}
 	state := m.tileStateLocked(t)
+
+	groupStates := make([]TileState, 0, len(m.groups))
+	for _, g := range m.groups {
+		if containsID(g.childIDs, t.cfg.ID) {
+			groupStates = append(groupStates, m.groupStateLocked(g))
+		}
+	}
 	m.mu.Unlock()
 
 	m.broadcast(state)
+	for _, groupState := range groupStates {
+		m.broadcast(groupState)
+	}
+}
+
+func containsID(ids []string, id string) bool {
+	for _, candidate := range ids {
+		if candidate == id {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *Monitor) performCheck(ctx context.Context, t *tile) Check {
@@ -221,15 +266,23 @@ func isExpectedStatus(status int, expected []int) bool {
 	return false
 }
 
-// Snapshot returns the current state of every tile.
+// Snapshot returns the current state of every UPTIME and GROUP tile, in configuration order.
+// EMPTY tiles hold no state.
 func (m *Monitor) Snapshot() []TileState {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	states := make([]TileState, 0, len(m.tiles))
+	states := make([]TileState, 0, len(m.cfg.Tiles))
 	for _, tileCfg := range m.cfg.Tiles {
-		if t, ok := m.tiles[tileCfg.ID]; ok {
-			states = append(states, m.tileStateLocked(t))
+		switch tileCfg.Type {
+		case config.TypeUptime:
+			if t, ok := m.tiles[tileCfg.ID]; ok {
+				states = append(states, m.tileStateLocked(t))
+			}
+		case config.TypeGroup:
+			if g, ok := m.groups[tileCfg.ID]; ok {
+				states = append(states, m.groupStateLocked(g))
+			}
 		}
 	}
 	return states
@@ -263,6 +316,60 @@ func (m *Monitor) tileStateLocked(t *tile) TileState {
 		Uptime:         uptime,
 		Since:          t.since.UnixMilli(),
 		History:        history,
+	}
+}
+
+// groupStateLocked aggregates the status of a group's sub-tiles:
+// FAILED if any sub-tile failed, PENDING if none checked yet, SUCCESS otherwise.
+// Uptime is the average of the sub-tiles that already have history.
+func (m *Monitor) groupStateLocked(g *group) TileState {
+	anyFailed, anySuccess := false, false
+	uptimeSum, uptimeCount := 0.0, 0
+	var since int64
+
+	for _, childID := range g.childIDs {
+		child, ok := m.tiles[childID]
+		if !ok {
+			continue
+		}
+		switch child.status {
+		case StatusFailed:
+			anyFailed = true
+		case StatusSuccess:
+			anySuccess = true
+		}
+
+		childState := m.tileStateLocked(child)
+		if len(childState.History) > 0 {
+			uptimeSum += childState.Uptime
+			uptimeCount++
+		}
+		if childState.Since > since {
+			since = childState.Since
+		}
+	}
+
+	status := StatusPending
+	switch {
+	case anyFailed:
+		status = StatusFailed
+	case anySuccess:
+		status = StatusSuccess
+	}
+
+	uptime := 0.0
+	if uptimeCount > 0 {
+		uptime = uptimeSum / float64(uptimeCount)
+	}
+
+	return TileState{
+		ID:     g.cfg.ID,
+		Type:   config.TypeGroup,
+		Label:  g.cfg.Label,
+		Status: status,
+		Uptime: uptime,
+		Since:  since,
+		Tiles:  g.childIDs,
 	}
 }
 

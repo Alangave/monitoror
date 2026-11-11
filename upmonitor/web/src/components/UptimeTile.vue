@@ -1,16 +1,30 @@
 <template>
-  <div class="c-uptime-tile" :class="statusClass">
+  <div class="c-uptime-tile" :class="[statusClass, { 'c-uptime-tile--group': isGroup }]">
     <div class="c-uptime-tile--content" v-if="state">
       <div class="c-uptime-tile--label">{{ info.label || info.id }}</div>
 
       <div class="c-uptime-tile--message" v-if="state.message">{{ state.message }}</div>
 
       <div class="c-uptime-tile--value">{{ displayedUptime }}</div>
-      <div class="c-uptime-tile--response-time" v-if="state.status !== 'PENDING'">
+      <div class="c-uptime-tile--response-time" v-if="!isGroup && state.status !== 'PENDING'">
         {{ state.responseTimeMs }} ms
       </div>
 
-      <uptime-bars :history="state.history" class="c-uptime-tile--bars"></uptime-bars>
+      <uptime-bars v-if="!isGroup" :history="state.history" class="c-uptime-tile--bars"></uptime-bars>
+
+      <div class="c-uptime-tile--sub-tiles" v-if="isGroup">
+        <div
+          v-for="child in children"
+          :key="child.id"
+          class="c-sub-tile"
+          :class="childStatusClass(child)"
+        >
+          <span class="c-sub-tile--label">{{ child.label || child.id }}</span>
+          <span class="c-sub-tile--value" v-if="childState(child)">
+            {{ Math.round(childState(child).uptime * 100) }}%
+          </span>
+        </div>
+      </div>
 
       <div class="c-uptime-tile--since" v-if="sinceLabel">{{ sinceLabel }}</div>
     </div>
@@ -40,6 +54,9 @@ export default defineComponent({
   setup (props) {
     const state = computed<TileState | undefined>(() => store.states[props.info.id])
 
+    const isGroup = computed(() => props.info.type === 'GROUP')
+    const children = computed(() => props.info.tiles ?? [])
+
     const statusClass = computed(() => {
       if (!state.value) return 'c-uptime-tile--pending'
       return `c-uptime-tile--${state.value.status.toLowerCase()}`
@@ -61,11 +78,31 @@ export default defineComponent({
       return `${Math.floor(hours / 24)}d ${hours % 24}h`
     })
 
+    function childState (child: TileInfo): TileState | undefined {
+      return store.states[child.id]
+    }
+
+    function childStatusClass (child: TileInfo): string {
+      const childTileState = store.states[child.id]
+      if (!childTileState) return 'c-sub-tile--pending'
+      return `c-sub-tile--${childTileState.status.toLowerCase()}`
+    }
+
     const now = ref(Date.now())
     const timer = window.setInterval(() => { now.value = Date.now() }, 1000)
     onUnmounted(() => window.clearInterval(timer))
 
-    return { state, statusClass, displayedUptime, sinceLabel, now }
+    return {
+      state,
+      isGroup,
+      children,
+      statusClass,
+      displayedUptime,
+      sinceLabel,
+      childState,
+      childStatusClass,
+      now,
+    }
   },
 })
 </script>
@@ -85,6 +122,10 @@ export default defineComponent({
 .c-uptime-tile--success { --tile-background: var(--color-succeeded); }
 .c-uptime-tile--failed { --tile-background: var(--color-failed); }
 .c-uptime-tile--pending { --tile-background: var(--color-pending); }
+
+.c-uptime-tile--group {
+  grid-column: span 2;
+}
 
 .c-uptime-tile--content {
   display: flex;
@@ -128,6 +169,37 @@ export default defineComponent({
 .c-uptime-tile--bars {
   height: 34px;
 }
+
+.c-uptime-tile--sub-tiles {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  min-height: 26px;
+}
+
+.c-sub-tile {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  overflow: hidden;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.c-sub-tile--label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.c-sub-tile--success { background: rgba(255, 255, 255, 0.35); }
+.c-sub-tile--failed { background: #2c3e50; }
+.c-sub-tile--pending { background: rgba(0, 0, 0, 0.2); }
 
 .c-uptime-tile--since {
   margin-top: 4px;

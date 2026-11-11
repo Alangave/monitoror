@@ -13,9 +13,10 @@ import (
 )
 
 type tileInfo struct {
-	ID    string `json:"id"`
-	Type  string `json:"type"`
-	Label string `json:"label"`
+	ID    string     `json:"id"`
+	Type  string     `json:"type"`
+	Label string     `json:"label"`
+	Tiles []tileInfo `json:"tiles,omitempty"`
 }
 
 type configPayload struct {
@@ -36,7 +37,7 @@ func New(cfg *config.Config, mon *monitor.Monitor, ui fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/config", func(w http.ResponseWriter, r *http.Request) {
 		tiles := make([]tileInfo, 0, len(cfg.Tiles))
 		for _, tile := range cfg.Tiles {
-			tiles = append(tiles, tileInfo{ID: tile.ID, Type: tile.Type, Label: tile.Label})
+			tiles = append(tiles, buildTileInfo(tile))
 		}
 		writeJSON(w, http.StatusOK, configPayload{
 			Version: cfg.Version,
@@ -96,6 +97,14 @@ func New(cfg *config.Config, mon *monitor.Monitor, ui fs.FS) http.Handler {
 	}
 
 	return logRequests(mux)
+}
+
+func buildTileInfo(tile config.TileConfig) tileInfo {
+	info := tileInfo{ID: tile.ID, Type: tile.Type, Label: tile.Label}
+	for _, child := range tile.Tiles {
+		info.Tiles = append(info.Tiles, buildTileInfo(child))
+	}
+	return info
 }
 
 func sendSnapshot(w http.ResponseWriter, flusher http.Flusher, mon *monitor.Monitor) error {

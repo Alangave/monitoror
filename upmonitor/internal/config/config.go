@@ -14,6 +14,8 @@ import (
 
 const (
 	TypeUptime = "UPTIME"
+	TypeGroup  = "GROUP"
+	TypeEmpty  = "EMPTY"
 
 	DefaultTimeoutMs = 2000
 	DefaultIntervalS = 30
@@ -35,12 +37,14 @@ type Params struct {
 }
 
 // TileConfig is a single tile declaration from the configuration file.
+// GROUP tiles embed their sub-tiles in Tiles; EMPTY tiles are grid placeholders.
 type TileConfig struct {
-	Type   string `json:"type"`
-	Label  string `json:"label,omitempty"`
-	Params Params `json:"params"`
+	Type   string       `json:"type"`
+	Label  string       `json:"label,omitempty"`
+	Params Params       `json:"params,omitempty"`
+	Tiles  []TileConfig `json:"tiles,omitempty"`
 
-	// ID is the computed state key, filled by Load.
+	// ID is the computed state key, filled by Validate/Load.
 	ID string `json:"-"`
 }
 
@@ -86,26 +90,75 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("at least one tile is required")
 	}
 
-	seen := make(map[string]bool, len(c.Tiles))
 	for i := range c.Tiles {
-		tile := &c.Tiles[i]
-		if err := tile.validate(); err != nil {
+		if err := c.Tiles[i].validate(i); err != nil {
 			return fmt.Errorf("tile %d: %w", i, err)
 		}
-		if seen[tile.ID] {
-			return fmt.Errorf("tile %d: duplicate tile definition", i)
+	}
+
+	seen := make(map[string]bool)
+	var walk func(tiles []TileConfig) error
+	walk = func(tiles []TileConfig) error {
+		for i := range tiles {
+			tile := &tiles[i]
+			if tile.Type == TypeEmpty {
+				continue
+			}
+			if seen[tile.ID] {
+				return fmt.Errorf("duplicate tile definition %q", tile.ID)
+			}
+			seen[tile.ID] = true
+			if len(tile.Tiles) > 0 {
+				if err := walk(tile.Tiles); err != nil {
+					return err
+				}
+			}
 		}
-		seen[tile.ID] = true
+		return nil
+	}
+	if err := walk(c.Tiles); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (t *TileConfig) validate() error {
-	if !strings.EqualFold(t.Type, TypeUptime) {
-		return fmt.Errorf("unknown tile type %q, only %q is supported", t.Type, TypeUptime)
+func (t *TileConfig) validate(index int) error {
+	switch {
+	case strings.EqualFold(t.Type, TypeUptime):
+		t.Type = TypeUptime
+		if err := t.validateUptimeParams(); err != nil {
+			return err
+		}
+	case strings.EqualFold(t.Type, TypeGroup):
+		t.Type = TypeGroup
+		if t.Label == "" {
+			return fmt.Errorf("group tile requires a label")
+		}
+		if len(t.Tiles) == 0 {
+			return fmt.Errorf("group tile requires at least one sub-tile")
+		}
+		for i := range t.Tiles {
+			child := &t.Tiles[i]
+			if !strings.EqualFold(child.Type, TypeUptime) {
+				return fmt.Errorf("sub-tile %d: only %q tiles are supported inside groups", i, TypeUptime)
+			}
+			if err := child.validate(i); err != nil {
+				return fmt.Errorf("sub-tile %d: %w", i, err)
+			}
+		}
+	case strings.EqualFold(t.Type, TypeEmpty):
+		t.Type = TypeEmpty
+		t.ID = fmt.Sprintf("empty-%d", index)
+		return nil
+	default:
+		return fmt.Errorf("unknown tile type %q, supported types: %q, %q, %q", t.Type, TypeUptime, TypeGroup, TypeEmpty)
 	}
-	t.Type = TypeUptime
 
+	t.ID = t.computeID()
+	return nil
+}
+
+func (t *TileConfig) validateUptimeParams() error {
 	p := &t.Params
 	if p.URL == "" {
 		return fmt.Errorf("missing params.url")
@@ -144,8 +197,6 @@ func (t *TileConfig) validate() error {
 			return fmt.Errorf("invalid expected status code %d", status)
 		}
 	}
-
-	t.ID = t.computeID()
 	return nil
 }
 

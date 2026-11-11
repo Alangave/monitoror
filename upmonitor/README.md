@@ -7,6 +7,9 @@ binary embedding a Node.js-built UI, shipped as a rootless container.
 
 - **UPTIME tiles**: periodic HTTP checks (URL, method, expected status codes, keyword,
   timeout, interval) with a Monitoror-like tile wall.
+- **GROUP tiles**: aggregate sub-tiles with a computed status (failed if any sub-tile
+  fails) displayed as a double-width tile with sub-tiles inside.
+- **EMPTY tiles**: invisible placeholders to control the grid layout.
 - **Uptime graphs**: each tile shows a bar graph of the last checks, the uptime
   percentage, the last response time and the duration since the last status change.
 - **Live updates**: tile states are pushed to the UI over Server-Sent Events.
@@ -35,7 +38,16 @@ The configuration format is inspired by Monitoror's `config.json`:
         "interval": 30,
         "insecureTLS": false
       }
-    }
+    },
+    {
+      "type": "GROUP",
+      "label": "Production",
+      "tiles": [
+        {"type": "UPTIME", "label": "API", "params": {"url": "https://api.example.com"}},
+        {"type": "UPTIME", "label": "Web", "params": {"url": "https://www.example.com"}}
+      ]
+    },
+    {"type": "EMPTY"}
   ]
 }
 ```
@@ -51,6 +63,18 @@ The configuration format is inspired by Monitoror's `config.json`:
 | `insecureTLS`    | `false`  | Skip TLS certificate verification              |
 
 The last 100 checks are kept in memory per tile; the graph shows the last 48.
+
+### GROUP tiles
+
+A `GROUP` tile aggregates `UPTIME` sub-tiles defined inline. Its status is computed:
+`FAILED` if any sub-tile fails, `PENDING` until the first check, `SUCCESS` otherwise.
+The displayed uptime is the average of the sub-tiles. Groups render double-width with
+their sub-tiles inside; each sub-tile is also streamed individually over SSE.
+
+### EMPTY tiles
+
+`{"type": "EMPTY"}` renders nothing and holds no state — it fills a grid cell to
+control the wall layout, like Monitoror's empty tiles.
 
 ## Usage
 

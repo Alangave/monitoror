@@ -16,6 +16,7 @@ export interface TileState {
   responseTimeMs: number
   uptime: number
   since: number
+  tiles?: string[]
   history: Check[]
 }
 
@@ -23,6 +24,7 @@ export interface TileInfo {
   id: string
   type: string
   label: string
+  tiles?: TileInfo[]
 }
 
 export interface WallConfig {
