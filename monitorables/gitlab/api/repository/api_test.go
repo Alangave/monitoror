@@ -13,7 +13,7 @@ import (
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	. "github.com/stretchr/testify/mock"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 func initRepository(t *testing.T) *gitlabRepository {
@@ -101,7 +101,7 @@ func TestRepository_GetPipeline_Error(t *testing.T) {
 	gitlabErr := errors.New("gitlab error")
 
 	mockPipelineService := new(mocks.PipelinesService)
-	mockPipelineService.On("GetPipeline", Anything, AnythingOfType("int"), Anything).
+	mockPipelineService.On("GetPipeline", Anything, AnythingOfType("int64"), Anything).
 		Return(nil, nil, gitlabErr)
 
 	repository := initRepository(t)
@@ -134,7 +134,7 @@ func TestRepository_GetPipeline_Success(t *testing.T) {
 	}
 
 	mockPipelineService := new(mocks.PipelinesService)
-	mockPipelineService.On("GetPipeline", Anything, AnythingOfType("int"), Anything).
+	mockPipelineService.On("GetPipeline", Anything, AnythingOfType("int64"), Anything).
 		Return(gitlabPipeline, nil, nil)
 
 	pipeline := &models.Pipeline{
@@ -208,7 +208,7 @@ func TestRepository_GetMergeRequest_Error(t *testing.T) {
 	gitlabErr := errors.New("gitlab error")
 
 	mockMergeRequestService := new(mocks.MergeRequestsService)
-	mockMergeRequestService.On("GetMergeRequest", Anything, AnythingOfType("int"), Anything, Anything).
+	mockMergeRequestService.On("GetMergeRequest", Anything, AnythingOfType("int64"), Anything, Anything).
 		Return(nil, nil, gitlabErr)
 
 	repository := initRepository(t)
@@ -226,20 +226,22 @@ func TestRepository_GetMergeRequest_Error(t *testing.T) {
 
 func TestRepository_GetMergeRequest_Success(t *testing.T) {
 	gitlabMergeRequest := &gitlab.MergeRequest{
-		ID:              10,
-		IID:             20,
-		Title:           "Test",
-		SourceProjectID: 30,
-		SourceBranch:    "master",
-		SHA:             "12345",
-		Author: &gitlab.BasicUser{
-			Username:  "test",
-			AvatarURL: "test.example.com",
+		BasicMergeRequest: gitlab.BasicMergeRequest{
+			ID:              10,
+			IID:             20,
+			Title:           "Test",
+			SourceProjectID: 30,
+			SourceBranch:    "master",
+			SHA:             "12345",
+			Author: &gitlab.BasicUser{
+				Username:  "test",
+				AvatarURL: "test.example.com",
+			},
 		},
 	}
 
 	mockMergeRequestService := new(mocks.MergeRequestsService)
-	mockMergeRequestService.On("GetMergeRequest", Anything, AnythingOfType("int"), Anything, Anything).
+	mockMergeRequestService.On("GetMergeRequest", Anything, AnythingOfType("int64"), Anything, Anything).
 		Return(gitlabMergeRequest, nil, nil)
 
 	mergeRequest := &models.MergeRequest{
@@ -288,7 +290,7 @@ func TestRepository_GetMergeRequests_Error(t *testing.T) {
 }
 
 func TestRepository_GetMergeRequests_Success(t *testing.T) {
-	gitlabMergeRequest := &gitlab.MergeRequest{
+	gitlabMergeRequest := &gitlab.BasicMergeRequest{
 		ID:              10,
 		IID:             20,
 		Title:           "Test",
@@ -303,7 +305,7 @@ func TestRepository_GetMergeRequests_Success(t *testing.T) {
 
 	mockMergeRequestService := new(mocks.MergeRequestsService)
 	mockMergeRequestService.On("ListProjectMergeRequests", Anything, Anything, Anything).
-		Return([]*gitlab.MergeRequest{gitlabMergeRequest}, nil, nil)
+		Return([]*gitlab.BasicMergeRequest{gitlabMergeRequest}, nil, nil)
 
 	mergeRequest := models.MergeRequest{
 		ID:    20,

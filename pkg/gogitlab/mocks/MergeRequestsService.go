@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,7 +14,7 @@ type MergeRequestsService struct {
 }
 
 // GetMergeRequest provides a mock function with given fields: pid, mergeRequest, opt, options
-func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest int, opt *gitlab.GetMergeRequestsOptions, options ...gitlab.RequestOptionFunc) (*gitlab.MergeRequest, *gitlab.Response, error) {
+func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest int64, opt *gitlab.GetMergeRequestsOptions, options ...gitlab.RequestOptionFunc) (*gitlab.MergeRequest, *gitlab.Response, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -31,10 +31,10 @@ func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest in
 	var r0 *gitlab.MergeRequest
 	var r1 *gitlab.Response
 	var r2 error
-	if rf, ok := ret.Get(0).(func(interface{}, int, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) (*gitlab.MergeRequest, *gitlab.Response, error)); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) (*gitlab.MergeRequest, *gitlab.Response, error)); ok {
 		return rf(pid, mergeRequest, opt, options...)
 	}
-	if rf, ok := ret.Get(0).(func(interface{}, int, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) *gitlab.MergeRequest); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) *gitlab.MergeRequest); ok {
 		r0 = rf(pid, mergeRequest, opt, options...)
 	} else {
 		if ret.Get(0) != nil {
@@ -42,7 +42,7 @@ func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest in
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(interface{}, int, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
+	if rf, ok := ret.Get(1).(func(interface{}, int64, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
 		r1 = rf(pid, mergeRequest, opt, options...)
 	} else {
 		if ret.Get(1) != nil {
@@ -50,7 +50,7 @@ func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest in
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(interface{}, int, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) error); ok {
+	if rf, ok := ret.Get(2).(func(interface{}, int64, *gitlab.GetMergeRequestsOptions, ...gitlab.RequestOptionFunc) error); ok {
 		r2 = rf(pid, mergeRequest, opt, options...)
 	} else {
 		r2 = ret.Error(2)
@@ -60,7 +60,7 @@ func (_m *MergeRequestsService) GetMergeRequest(pid interface{}, mergeRequest in
 }
 
 // ListMergeRequestPipelines provides a mock function with given fields: pid, mergeRequest, options
-func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, mergeRequest int, options ...gitlab.RequestOptionFunc) ([]*gitlab.PipelineInfo, *gitlab.Response, error) {
+func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, mergeRequest int64, options ...gitlab.RequestOptionFunc) ([]*gitlab.PipelineInfo, *gitlab.Response, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -77,10 +77,10 @@ func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, merge
 	var r0 []*gitlab.PipelineInfo
 	var r1 *gitlab.Response
 	var r2 error
-	if rf, ok := ret.Get(0).(func(interface{}, int, ...gitlab.RequestOptionFunc) ([]*gitlab.PipelineInfo, *gitlab.Response, error)); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, ...gitlab.RequestOptionFunc) ([]*gitlab.PipelineInfo, *gitlab.Response, error)); ok {
 		return rf(pid, mergeRequest, options...)
 	}
-	if rf, ok := ret.Get(0).(func(interface{}, int, ...gitlab.RequestOptionFunc) []*gitlab.PipelineInfo); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, ...gitlab.RequestOptionFunc) []*gitlab.PipelineInfo); ok {
 		r0 = rf(pid, mergeRequest, options...)
 	} else {
 		if ret.Get(0) != nil {
@@ -88,7 +88,7 @@ func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, merge
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(interface{}, int, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
+	if rf, ok := ret.Get(1).(func(interface{}, int64, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
 		r1 = rf(pid, mergeRequest, options...)
 	} else {
 		if ret.Get(1) != nil {
@@ -96,7 +96,7 @@ func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, merge
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(interface{}, int, ...gitlab.RequestOptionFunc) error); ok {
+	if rf, ok := ret.Get(2).(func(interface{}, int64, ...gitlab.RequestOptionFunc) error); ok {
 		r2 = rf(pid, mergeRequest, options...)
 	} else {
 		r2 = ret.Error(2)
@@ -106,7 +106,7 @@ func (_m *MergeRequestsService) ListMergeRequestPipelines(pid interface{}, merge
 }
 
 // ListProjectMergeRequests provides a mock function with given fields: pid, opt, options
-func (_m *MergeRequestsService) ListProjectMergeRequests(pid interface{}, opt *gitlab.ListProjectMergeRequestsOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+func (_m *MergeRequestsService) ListProjectMergeRequests(pid interface{}, opt *gitlab.ListProjectMergeRequestsOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.BasicMergeRequest, *gitlab.Response, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -120,17 +120,17 @@ func (_m *MergeRequestsService) ListProjectMergeRequests(pid interface{}, opt *g
 		panic("no return value specified for ListProjectMergeRequests")
 	}
 
-	var r0 []*gitlab.MergeRequest
+	var r0 []*gitlab.BasicMergeRequest
 	var r1 *gitlab.Response
 	var r2 error
-	if rf, ok := ret.Get(0).(func(interface{}, *gitlab.ListProjectMergeRequestsOptions, ...gitlab.RequestOptionFunc) ([]*gitlab.MergeRequest, *gitlab.Response, error)); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, *gitlab.ListProjectMergeRequestsOptions, ...gitlab.RequestOptionFunc) ([]*gitlab.BasicMergeRequest, *gitlab.Response, error)); ok {
 		return rf(pid, opt, options...)
 	}
-	if rf, ok := ret.Get(0).(func(interface{}, *gitlab.ListProjectMergeRequestsOptions, ...gitlab.RequestOptionFunc) []*gitlab.MergeRequest); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, *gitlab.ListProjectMergeRequestsOptions, ...gitlab.RequestOptionFunc) []*gitlab.BasicMergeRequest); ok {
 		r0 = rf(pid, opt, options...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*gitlab.MergeRequest)
+			r0 = ret.Get(0).([]*gitlab.BasicMergeRequest)
 		}
 	}
 

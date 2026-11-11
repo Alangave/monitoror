@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,7 +14,7 @@ type PipelinesService struct {
 }
 
 // GetPipeline provides a mock function with given fields: pid, pipeline, options
-func (_m *PipelinesService) GetPipeline(pid interface{}, pipeline int, options ...gitlab.RequestOptionFunc) (*gitlab.Pipeline, *gitlab.Response, error) {
+func (_m *PipelinesService) GetPipeline(pid interface{}, pipeline int64, options ...gitlab.RequestOptionFunc) (*gitlab.Pipeline, *gitlab.Response, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -31,10 +31,10 @@ func (_m *PipelinesService) GetPipeline(pid interface{}, pipeline int, options .
 	var r0 *gitlab.Pipeline
 	var r1 *gitlab.Response
 	var r2 error
-	if rf, ok := ret.Get(0).(func(interface{}, int, ...gitlab.RequestOptionFunc) (*gitlab.Pipeline, *gitlab.Response, error)); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, ...gitlab.RequestOptionFunc) (*gitlab.Pipeline, *gitlab.Response, error)); ok {
 		return rf(pid, pipeline, options...)
 	}
-	if rf, ok := ret.Get(0).(func(interface{}, int, ...gitlab.RequestOptionFunc) *gitlab.Pipeline); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, int64, ...gitlab.RequestOptionFunc) *gitlab.Pipeline); ok {
 		r0 = rf(pid, pipeline, options...)
 	} else {
 		if ret.Get(0) != nil {
@@ -42,7 +42,7 @@ func (_m *PipelinesService) GetPipeline(pid interface{}, pipeline int, options .
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(interface{}, int, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
+	if rf, ok := ret.Get(1).(func(interface{}, int64, ...gitlab.RequestOptionFunc) *gitlab.Response); ok {
 		r1 = rf(pid, pipeline, options...)
 	} else {
 		if ret.Get(1) != nil {
@@ -50,7 +50,7 @@ func (_m *PipelinesService) GetPipeline(pid interface{}, pipeline int, options .
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(interface{}, int, ...gitlab.RequestOptionFunc) error); ok {
+	if rf, ok := ret.Get(2).(func(interface{}, int64, ...gitlab.RequestOptionFunc) error); ok {
 		r2 = rf(pid, pipeline, options...)
 	} else {
 		r2 = ret.Error(2)

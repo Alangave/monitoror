@@ -25,21 +25,16 @@ type (
 )
 
 func NewTravisCIRepository(config *config.TravisCI) api.Repository {
+	if config.URL == "" {
+		panic("unable to setup TravisCI client\n. URL is empty\n")
+	}
+
 	// Add / if missing
 	if !strings.HasSuffix(config.URL, "/") {
 		config.URL += "/"
 	}
 
 	client := travis.NewClient(config.URL, config.Token)
-
-	// Using Github token if exist
-	// TODO: Change this to use Lazy load
-	if config.GithubToken != "" {
-		_, _, err := client.Authentication.UsingGithubToken(context.Background(), config.GithubToken)
-		if err != nil {
-			panic(fmt.Sprintf("unable to connect to TravisCI Using Github Token\n. %v\n", err))
-		}
-	}
 
 	return &travisCIRepository{
 		config,
@@ -103,7 +98,7 @@ func parseDate(date string) time.Time {
 	return t
 }
 
-func parseDuration(duration uint) time.Duration {
+func parseDuration(duration int64) time.Duration {
 	d := time.Duration(duration) * time.Second
 	return d
 }

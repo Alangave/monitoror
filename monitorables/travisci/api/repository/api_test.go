@@ -99,7 +99,7 @@ func TestRepository_GetLastBuildStatus_Success(t *testing.T) {
 		PreviousState: ToString("passed"),
 		StartedAt:     ToString("2019-04-12T20:39:59Z"),
 		FinishedAt:    ToString("2019-04-12T20:39:59Z"),
-		Duration:      ToUint(154),
+		Duration:      ToInt64(154),
 	}
 
 	mockTravis := new(mocks.TravisCI)
