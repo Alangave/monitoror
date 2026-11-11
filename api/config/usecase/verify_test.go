@@ -9,8 +9,8 @@ import (
 	"github.com/monitoror/monitoror/api/config/versions"
 	"github.com/monitoror/monitoror/internal/pkg/validator"
 	coreModels "github.com/monitoror/monitoror/models"
-	jenkinsApi "github.com/monitoror/monitoror/monitorables/jenkins/api"
-	jenkinsModels "github.com/monitoror/monitoror/monitorables/jenkins/api/models"
+	httpApi "github.com/monitoror/monitoror/monitorables/http/api"
+	httpModels "github.com/monitoror/monitoror/monitorables/http/api/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -163,7 +163,7 @@ func TestUsecase_Verify_Failed(t *testing.T) {
 }
 
 func TestUsecase_VerifyTile_Success(t *testing.T) {
-	rawConfig := `{ "type": "PORT", "columnSpan": 2, "rowSpan": 2, "params": { "hostname": "bserver.com", "port": 22 } }`
+	rawConfig := `{ "type": "HTTP-STATUS", "columnSpan": 2, "rowSpan": 2, "params": { "url": "https://bserver.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
 	usecase := initConfigUsecase(nil)
@@ -185,8 +185,8 @@ func TestUsecase_VerifyTile_Success_Empty(t *testing.T) {
 func TestUsecase_VerifyTile_Success_Group(t *testing.T) {
 	rawConfig := `
       { "type": "GROUP", "label": "...", "tiles": [
-          { "type": "PING", "params": { "hostname": "aserver.com" } },
-          { "type": "PORT", "params": { "hostname": "bserver.com", "port": 22 } }
+          { "type": "HTTP-STATUS", "params": { "url": "https://aserver.com" } },
+          { "type": "HTTP-RAW", "params": { "url": "https://bserver.com" } }
 			]}
 `
 
@@ -204,21 +204,21 @@ func TestUsecase_VerifyTile_Failed(t *testing.T) {
 		errorData models.ConfigErrorData
 	}{
 		{
-			rawConfig: `{ "type": "PING", "columnSpan": -1, "params": { "hostname": "server.com" } }`,
+			rawConfig: `{ "type": "HTTP-STATUS", "columnSpan": -1, "params": { "url": "https://server.com" } }`,
 			errorID:   models.ConfigErrorInvalidFieldValue,
 			errorData: models.ConfigErrorData{
 				FieldName:     "columnSpan",
 				Expected:      "columnSpan > 0",
-				ConfigExtract: `{"type":"PING","columnSpan":-1,"params":{"hostname":"server.com"}}`,
+				ConfigExtract: `{"type":"HTTP-STATUS","columnSpan":-1,"params":{"url":"https://server.com"}}`,
 			},
 		},
 		{
-			rawConfig: `{ "type": "PING", "rowSpan": -1, "params": { "hostname": "server.com" } }`,
+			rawConfig: `{ "type": "HTTP-STATUS", "rowSpan": -1, "params": { "url": "https://server.com" } }`,
 			errorID:   models.ConfigErrorInvalidFieldValue,
 			errorData: models.ConfigErrorData{
 				FieldName:     "rowSpan",
 				Expected:      "rowSpan > 0",
-				ConfigExtract: `{"type":"PING","rowSpan":-1,"params":{"hostname":"server.com"}}`,
+				ConfigExtract: `{"type":"HTTP-STATUS","rowSpan":-1,"params":{"url":"https://server.com"}}`,
 			},
 		},
 		{
@@ -226,7 +226,7 @@ func TestUsecase_VerifyTile_Failed(t *testing.T) {
 					{ "type": "GROUP", "tiles": [
 							{ "type": "EMPTY" }
 					]}
-		`,
+`,
 			errorID: models.ConfigErrorUnauthorizedSubtileType,
 			errorData: models.ConfigErrorData{
 				ConfigExtract:          `{"type":"GROUP","tiles":[{"type":"EMPTY"}]}`,
@@ -238,7 +238,7 @@ func TestUsecase_VerifyTile_Failed(t *testing.T) {
 					{ "type": "GROUP", "tiles": [
 							{ "type": "GROUP" }
 					]}
-		`,
+`,
 			errorID: models.ConfigErrorUnauthorizedSubtileType,
 			errorData: models.ConfigErrorData{
 				ConfigExtract:          `{"type":"GROUP","tiles":[{"type":"GROUP"}]}`,
@@ -270,54 +270,62 @@ func TestUsecase_VerifyTile_Failed(t *testing.T) {
 			},
 		},
 		{
-			rawConfig: `{ "type": "PING" }`,
+			rawConfig: `{ "type": "HTTP-STATUS" }`,
 			errorID:   models.ConfigErrorMissingRequiredField,
 			errorData: models.ConfigErrorData{
 				FieldName:     "params",
-				ConfigExtract: `{"type":"PING","configVariant":"default"}`,
+				ConfigExtract: `{"type":"HTTP-STATUS","configVariant":"default"}`,
 			},
 		},
 		{
-			rawConfig: `{ "type": "PING", "params": { } }`,
+			rawConfig: `{ "type": "HTTP-STATUS", "params": { } }`,
 			errorID:   models.ConfigErrorMissingRequiredField,
 			errorData: models.ConfigErrorData{
-				FieldName:     "hostname",
-				ConfigExtract: `{"type":"PING","configVariant":"default","params":{}}`,
+				FieldName:     "url",
+				ConfigExtract: `{"type":"HTTP-STATUS","configVariant":"default","params":{}}`,
 			},
 		},
 		{
-			rawConfig: `{ "type": "PING", "params": { "host": "server.com" } }`,
+			rawConfig: `{ "type": "HTTP-STATUS", "params": { "host": "https://server.com" } }`,
 			errorID:   models.ConfigErrorUnknownField,
 			errorData: models.ConfigErrorData{
 				FieldName:     "host",
-				ConfigExtract: `{"type":"PING","params":{"host":"server.com"},"configVariant":"default"}`,
-				Expected:      "hostname",
+				ConfigExtract: `{"type":"HTTP-STATUS","params":{"host":"https://server.com"},"configVariant":"default"}`,
+				Expected:      "url",
 			},
 		},
 		{
-			rawConfig: `{ "type": "PORT", "params": { "hostname": "server.com", "port": -20 } }`,
+			rawConfig: `{ "type": "HTTP-STATUS", "params": { "url": "server.com" } }`,
 			errorID:   models.ConfigErrorInvalidFieldValue,
 			errorData: models.ConfigErrorData{
-				FieldName:     "port",
-				ConfigExtract: `{"type":"PORT","params":{"hostname":"server.com","port":-20},"configVariant":"default"}`,
-				Expected:      "port > 0",
+				FieldName:     "url",
+				ConfigExtract: `{"type":"HTTP-STATUS","params":{"url":"server.com"},"configVariant":"default"}`,
 			},
 		},
 		{
-			rawConfig: `{ "type": "PING", "params": { "hostname": ["server.com"] } }`,
+			rawConfig: `{ "type": "HTTP-FORMATTED", "params": { "url": "https://server.com", "format": "TOTO", "key": ".key" } }`,
+			errorID:   models.ConfigErrorInvalidFieldValue,
+			errorData: models.ConfigErrorData{
+				FieldName:     "format",
+				Expected:      "JSON, YAML, XML",
+				ConfigExtract: `{"type":"HTTP-FORMATTED","params":{"format":"TOTO","key":".key","url":"https://server.com"},"configVariant":"default"}`,
+			},
+		},
+		{
+			rawConfig: `{ "type": "HTTP-STATUS", "params": { "url": ["https://server.com"] } }`,
 			errorID:   models.ConfigErrorUnexpectedError,
 			errorData: models.ConfigErrorData{
 				FieldName:     "params",
-				ConfigExtract: `{"type":"PING","params":{"hostname":["server.com"]},"configVariant":"default"}`,
+				ConfigExtract: `{"type":"HTTP-STATUS","params":{"url":["https://server.com"]},"configVariant":"default"}`,
 			},
 		},
 		{
-			rawConfig: `{ "type": "JENKINS-BUILD", "configVariant": "disabledVariant", "params": { } }`,
+			rawConfig: `{ "type": "HTTP-RAW", "configVariant": "disabledVariant", "params": { } }`,
 			errorID:   models.ConfigErrorDisabledVariant,
 			errorData: models.ConfigErrorData{
 				FieldName:     "configVariant",
 				Value:         `"disabledVariant"`,
-				ConfigExtract: `{"type":"JENKINS-BUILD","configVariant":"disabledVariant"}`,
+				ConfigExtract: `{"type":"HTTP-RAW","configVariant":"disabledVariant"}`,
 			},
 		},
 	} {
@@ -333,23 +341,23 @@ func TestUsecase_VerifyTile_Failed(t *testing.T) {
 }
 
 func TestUsecase_VerifyTile_Failed_WrongMinimalVerison(t *testing.T) {
-	rawConfig := `{ "type": "PING", "params": { "hostname": "server.com" } }`
+	rawConfig := `{ "type": "HTTP-STATUS", "params": { "url": "https://server.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
 	usecase := initConfigUsecase(nil)
-	usecase.registry.TileMetadata["PING"].MinimalVersion = "999.0"
+	usecase.registry.TileMetadata["HTTP-STATUS"].MinimalVersion = "999.0"
 	usecase.verifyTile(conf, tile, nil)
 
 	if assert.Len(t, conf.Errors, 1) {
 		assert.Equal(t, models.ConfigErrorUnsupportedTileInThisVersion, conf.Errors[0].ID)
 		assert.Equal(t, "type", conf.Errors[0].Data.FieldName)
-		assert.Equal(t, `{"type":"PING","params":{"hostname":"server.com"},"configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
+		assert.Equal(t, `{"type":"HTTP-STATUS","params":{"url":"https://server.com"},"configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
 		assert.Equal(t, `version >= "999.0"`, conf.Errors[0].Data.Expected)
 	}
 }
 
 func TestUsecase_VerifyTile_Failed_WrongTileType(t *testing.T) {
-	rawConfig := `{ "type": "PONG", "params": { "hostname": "server.com" } }`
+	rawConfig := `{ "type": "PONG", "params": { "url": "https://server.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
 	usecase := initConfigUsecase(nil)
@@ -358,47 +366,47 @@ func TestUsecase_VerifyTile_Failed_WrongTileType(t *testing.T) {
 	if assert.Len(t, conf.Errors, 1) {
 		assert.Equal(t, models.ConfigErrorUnknownTileType, conf.Errors[0].ID)
 		assert.Equal(t, "type", conf.Errors[0].Data.FieldName)
-		assert.Equal(t, `{"type":"PONG","params":{"hostname":"server.com"},"configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
+		assert.Equal(t, `{"type":"PONG","params":{"url":"https://server.com"},"configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
 	}
 }
 
 func TestUsecase_VerifyTile_WithGenerator(t *testing.T) {
-	rawConfig := `{ "type": "GENERATE:JENKINS-BUILD", "configVariant": "default", "params": { "job": "job1" } }`
+	rawConfig := `{ "type": "GENERATE:HTTP-FORMATTED", "configVariant": "default", "params": { "url": "https://cserver.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
-	params := &jenkinsModels.BuildParams{Job: "test"}
+	params := &httpModels.HTTPFormattedParams{URL: "https://cserver.com", Format: "JSON", Key: ".key"}
 	mockBuilder := func(_ interface{}) ([]models.GeneratedTile, error) {
 		return []models.GeneratedTile{{Params: params}}, nil
 	}
 
 	usecase := initConfigUsecase(nil)
-	usecase.registry.RegisterGenerator(jenkinsApi.JenkinsBuildTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &jenkinsModels.BuildGeneratorParams{}, mockBuilder)
+	usecase.registry.RegisterGenerator(httpApi.HTTPFormattedTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
+		Enable(coreModels.DefaultVariantName, &mockGeneratorParams{}, mockBuilder)
 	usecase.verifyTile(conf, tile, nil)
 
 	assert.Len(t, conf.Errors, 0)
 }
 
 func TestUsecase_VerifyTile_WithGenerator_WithWrongGenerator(t *testing.T) {
-	rawConfig := `{ "type": "GENERATE:PING", "params": {}}`
+	rawConfig := `{ "type": "GENERATE:HTTP-STATUS", "params": {}}`
 
 	tile, conf := initConfig(t, rawConfig)
 	usecase := initConfigUsecase(nil)
-	usecase.registry.RegisterGenerator(jenkinsApi.JenkinsBuildTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &jenkinsModels.BuildGeneratorParams{}, nil)
+	usecase.registry.RegisterGenerator(httpApi.HTTPFormattedTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
+		Enable(coreModels.DefaultVariantName, &mockGeneratorParams{}, nil)
 
 	usecase.verifyTile(conf, tile, nil)
 
 	if assert.Len(t, conf.Errors, 1) {
 		assert.Equal(t, models.ConfigErrorUnknownGeneratorTileType, conf.Errors[0].ID)
 		assert.Equal(t, "type", conf.Errors[0].Data.FieldName)
-		assert.Equal(t, `{"type":"GENERATE:PING","configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
-		assert.Equal(t, `GENERATE:JENKINS-BUILD`, conf.Errors[0].Data.Expected)
+		assert.Equal(t, `{"type":"GENERATE:HTTP-STATUS","configVariant":"default"}`, conf.Errors[0].Data.ConfigExtract)
+		assert.Equal(t, `GENERATE:HTTP-FORMATTED`, conf.Errors[0].Data.Expected)
 	}
 }
 
 func TestUsecase_VerifyTile_WithWrongVariant(t *testing.T) {
-	rawConfig := `{ "type": "JENKINS-BUILD", "configVariant": "test", "params": { "job": "job1" } }`
+	rawConfig := `{ "type": "HTTP-RAW", "configVariant": "test", "params": { "url": "https://server.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
 
@@ -411,22 +419,22 @@ func TestUsecase_VerifyTile_WithWrongVariant(t *testing.T) {
 		assert.Equal(t, `"test"`, conf.Errors[0].Data.Value)
 		assert.Contains(t, conf.Errors[0].Data.Expected, coreModels.DefaultVariantName)
 		assert.Contains(t, conf.Errors[0].Data.Expected, "disabledVariant")
-		assert.Equal(t, `{"type":"JENKINS-BUILD","params":{"job":"job1"},"configVariant":"test"}`, conf.Errors[0].Data.ConfigExtract)
+		assert.Equal(t, `{"type":"HTTP-RAW","params":{"url":"https://server.com"},"configVariant":"test"}`, conf.Errors[0].Data.ConfigExtract)
 	}
 }
 
 func TestUsecase_VerifyTile_WithGenerator_WithWrongVariant(t *testing.T) {
-	rawConfig := `{ "type": "GENERATE:JENKINS-BUILD", "configVariant": "test", "params": { "job": "job1" } }`
+	rawConfig := `{ "type": "GENERATE:HTTP-FORMATTED", "configVariant": "test", "params": { "url": "https://cserver.com" } }`
 
 	tile, conf := initConfig(t, rawConfig)
-	params := &jenkinsModels.BuildParams{Job: "test"}
+	params := &httpModels.HTTPFormattedParams{URL: "https://cserver.com", Format: "JSON", Key: ".key"}
 	mockBuilder := func(_ interface{}) ([]models.GeneratedTile, error) {
 		return []models.GeneratedTile{{Params: params}}, nil
 	}
 
 	usecase := initConfigUsecase(nil)
-	usecase.registry.RegisterGenerator(jenkinsApi.JenkinsBuildTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &jenkinsModels.BuildGeneratorParams{}, mockBuilder)
+	usecase.registry.RegisterGenerator(httpApi.HTTPFormattedTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
+		Enable(coreModels.DefaultVariantName, &mockGeneratorParams{}, mockBuilder)
 	usecase.verifyTile(conf, tile, nil)
 
 	if assert.Len(t, conf.Errors, 1) {
@@ -434,7 +442,7 @@ func TestUsecase_VerifyTile_WithGenerator_WithWrongVariant(t *testing.T) {
 		assert.Equal(t, "configVariant", conf.Errors[0].Data.FieldName)
 		assert.Equal(t, `"test"`, conf.Errors[0].Data.Value)
 		assert.Contains(t, conf.Errors[0].Data.Expected, coreModels.DefaultVariantName)
-		assert.Equal(t, `{"type":"GENERATE:JENKINS-BUILD","params":{"job":"job1"},"configVariant":"test"}`, conf.Errors[0].Data.ConfigExtract)
+		assert.Equal(t, `{"type":"GENERATE:HTTP-FORMATTED","params":{"url":"https://cserver.com"},"configVariant":"test"}`, conf.Errors[0].Data.ConfigExtract)
 	}
 }
 

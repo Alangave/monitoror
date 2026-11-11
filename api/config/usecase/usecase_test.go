@@ -14,14 +14,8 @@ import (
 	"github.com/monitoror/monitoror/api/config/versions"
 	coreConfig "github.com/monitoror/monitoror/config"
 	coreModels "github.com/monitoror/monitoror/models"
-	jenkinsApi "github.com/monitoror/monitoror/monitorables/jenkins/api"
-	jenkinsModels "github.com/monitoror/monitoror/monitorables/jenkins/api/models"
-	pingApi "github.com/monitoror/monitoror/monitorables/ping/api"
-	pingModels "github.com/monitoror/monitoror/monitorables/ping/api/models"
-	pingdomApi "github.com/monitoror/monitoror/monitorables/pingdom/api"
-	pindomModels "github.com/monitoror/monitoror/monitorables/pingdom/api/models"
-	portApi "github.com/monitoror/monitoror/monitorables/port/api"
-	portModels "github.com/monitoror/monitoror/monitorables/port/api/models"
+	httpApi "github.com/monitoror/monitoror/monitorables/http/api"
+	httpModels "github.com/monitoror/monitoror/monitorables/http/api/models"
 	"github.com/monitoror/monitoror/registry"
 	"github.com/monitoror/monitoror/store"
 
@@ -38,14 +32,12 @@ func initConfigUsecase(repository config.Repository) *configUsecase {
 
 	usecase := NewConfigUsecase(repository, s).(*configUsecase)
 
-	usecase.registry.RegisterTile(pingApi.PingTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &pingModels.PingParams{}, "/ping/default/ping")
-	usecase.registry.RegisterTile(portApi.PortTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &portModels.PortParams{}, "/port/default/port")
-	usecase.registry.RegisterTile(jenkinsApi.JenkinsBuildTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName, "disabledVariant"}).
-		Enable(coreModels.DefaultVariantName, &jenkinsModels.BuildParams{}, "/jenkins/default/build")
-	usecase.registry.RegisterTile(pingdomApi.PingdomCheckTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
-		Enable(coreModels.DefaultVariantName, &pindomModels.CheckParams{}, "/pingdom/default/check")
+	usecase.registry.RegisterTile(httpApi.HTTPStatusTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
+		Enable(coreModels.DefaultVariantName, &httpModels.HTTPStatusParams{}, "/http/default/status")
+	usecase.registry.RegisterTile(httpApi.HTTPRawTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName, "disabledVariant"}).
+		Enable(coreModels.DefaultVariantName, &httpModels.HTTPRawParams{}, "/http/default/raw")
+	usecase.registry.RegisterTile(httpApi.HTTPFormattedTileType, versions.MinimalVersion, []coreModels.VariantName{coreModels.DefaultVariantName}).
+		Enable(coreModels.DefaultVariantName, &httpModels.HTTPFormattedParams{}, "/http/default/formatted")
 
 	return usecase
 }
@@ -63,12 +55,12 @@ func TestUsecase_Global_Success(t *testing.T) {
 	"version" : %q,
   "columns": 4,
   "tiles": [
-		{ "type": "PORT", "label": "Monitoror", "params": {"hostname": "localhost", "port": 8080} }
+		{ "type": "HTTP-STATUS", "label": "Monitoror", "params": {"url": "https://monitoror.com"} }
   ]
 }
 `, versions.CurrentVersion)
 
-	expectRawConfig := fmt.Sprintf(`{"config":{"version":%q,"columns":4,"tiles":[{"type":"PORT","label":"Monitoror","url":"/port/default/port?hostname=localhost\u0026port=8080","initialMaxDelay":1000}]}}`, versions.CurrentVersion)
+	expectRawConfig := fmt.Sprintf(`{"config":{"version":%q,"columns":4,"tiles":[{"type":"HTTP-STATUS","label":"Monitoror","url":"/http/default/status?url=https%%3A%%2F%%2Fmonitoror.com","initialMaxDelay":1000}]}}`, versions.CurrentVersion)
 
 	config, err := readConfig(rawConfig)
 	if assert.NoError(t, err) {

@@ -22,7 +22,7 @@
   "version": "2.1",
   "columns": 2,
   "tiles": [
-    { "type": "PORT", "label": "Welcome config example", "params": { "hostname": "127.0.0.1", "port": {{appPort}} } },
+    { "type": "HTTP-STATUS", "label": "Welcome config example", "params": { "url": "http://127.0.0.1:{{appPort}}" } },
     { "type": "HTTP-RAW", "label": "Monitoror stars", "params": { "url": "https://github.com/monitoror/monitoror", "regex": "(\\d+) users starred" } }
   ]
 }</code></pre>

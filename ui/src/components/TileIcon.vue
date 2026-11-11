@@ -23,48 +23,16 @@ export default defineComponent({
   setup (props) {
     const iconId = computed(() => {
       switch (props.tileType) {
-        case TileType.AzureDevOpsBuild:
-        case TileType.AzureDevOpsRelease:
-          return TileIconId.Azure
-
-        case TileType.GitHubChecks:
-        case TileType.GitHubPullRequest:
-        case TileType.GitHubCount:
-          return TileIconId.GitHub
-
-        case TileType.GitLabIssues:
-        case TileType.GitLabMergeRequest:
-        case TileType.GitLabPipeline:
-          return TileIconId.GitLab
-
         case TileType.Group:
           return TileIconId.Group
-
-        case TileType.JenkinsBuild:
-          return TileIconId.Jenkins
 
         case TileType.HttpStatus:
         case TileType.HttpRaw:
         case TileType.HttpFormatted:
           return TileIconId.Http
 
-        case TileType.Ping:
-          return TileIconId.Ping
-
-        case TileType.PingdomCheck:
-        case TileType.PingdomTransactionCheck:
-          return TileIconId.Pingdom
-
-        case TileType.Port:
-          return TileIconId.Port
-
-        case TileType.TravisCiBuild:
-          return TileIconId.TravisCi
-
-        case TileType.UptimecomCheck:
-          return TileIconId.Uptimecom
         default:
-          return TileIconId.Unknown
+          return TileIconId.Http
       }
     })
 

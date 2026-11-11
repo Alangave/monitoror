@@ -2,7 +2,7 @@
   "version": "2.0",
   "columns": 2,
   "tiles": [
-    {"type": "PORT", "label": "Am I on fire?", "params": {"hostname": "127.0.0.1", "port": 8080}},
-    {"type": "HTTP-STATUS", "label": "SSL certificate is valid", "params": { "url": "https://monitoror.com" }}
+    {"type": "HTTP-STATUS", "label": "Monitoror website", "params": { "url": "https://monitoror.com" }},
+    {"type": "HTTP-RAW", "label": "Monitoror stars", "params": { "url": "https://github.com/monitoror/monitoror", "regex": "(\\d+) users starred" }}
   ]
 }

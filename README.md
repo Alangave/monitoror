@@ -17,7 +17,16 @@
 
 # Monitoror
 
-Monitoror is a wallboard monitoring app to monitor server status; monitor CI builds progress or even display critical values.
+Monitoror is a wallboard monitoring app focused on **URL monitoring only**. It is a stripped-down fork of [monitoror/monitoror](https://github.com/monitoror/monitoror) keeping the same look & feel, with CI/CD (GitHub, GitLab, Jenkins, Travis CI, Azure DevOps), Ping, Port, Pingdom and Uptime.com monitorables removed.
+
+Available tile types:
+
+- `HTTP-STATUS`: check that a URL answers with an expected status code range
+- `HTTP-RAW`: check the raw response body (optional regex)
+- `HTTP-FORMATTED`: extract a value from a JSON/YAML/XML response
+- `GROUP`: group several tiles
+
+Core is written in Go 1.24+, UI in Vue 3 on Node.js 24+.
 
 
 ## Demo
