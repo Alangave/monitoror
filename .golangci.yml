@@ -1,6 +1,6 @@
 run:
   concurrency: 4
-  deadline: 5m
+  timeout: 5m
   issues-exit-code: 1
   tests: true
 
@@ -10,11 +10,10 @@ output:
   print-linter-name: true
 
 issues:
+  exclude-dirs:
+    - ui
   exclude-rules:
     - path: service/rice-box.go
-      linters:
-        - misspell
-    - path-except: '(.+)_test\.go'
       linters:
         - misspell
 linters:

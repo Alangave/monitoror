@@ -13,11 +13,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
       - uses: reviewdog/action-golangci-lint@v1
         with:
           github_token: ${{ secrets.github_token }}
+          golangci_lint_version: v1.64.8
           golangci_lint_flags: "--config=.golangci.yml"
           tool_name: Core / Lint report
+          reporter: github-check
+          filter_mode: nofilter
+          fail_on_error: true
 
   ui-lint:
     name: UI / Lint
