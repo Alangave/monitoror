@@ -22,8 +22,8 @@ import (
 // Note : It may be necessary to separate them from unit tests
 
 func TestCacheMiddleware(t *testing.T) {
-	var timeout bool = false
-	var address string = ""
+	var timeout bool
+	var address string
 
 	// test server
 	e := echo.New()

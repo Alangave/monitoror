@@ -14,13 +14,13 @@ import (
 
 func LoadConfigWithVariant(envPrefix string, defaultVariantName models.VariantName, conf interface{}, defaultConf interface{}) {
 	// Verify Params
-	if reflect.ValueOf(conf).Kind() != reflect.Ptr {
+	if reflect.ValueOf(conf).Kind() != reflect.Pointer {
 		panic(fmt.Sprintf("wrong LoadConfigWithVariant parameters: conf need to be a pointer of map[string]struct not a %s", reflect.ValueOf(conf).Kind()))
 	}
 	if reflect.ValueOf(conf).Elem().Kind() != reflect.Map || reflect.ValueOf(conf).Elem().Type().Key().Kind() != reflect.String {
 		panic(fmt.Sprintf("wrong LoadConfigWithVariant parameters: conf need to be a pointer of map[string]struct not a %s", reflect.ValueOf(conf).Elem().Type()))
 	}
-	if reflect.ValueOf(defaultConf).Kind() != reflect.Ptr {
+	if reflect.ValueOf(defaultConf).Kind() != reflect.Pointer {
 		panic(fmt.Sprintf("wrong LoadConfigWithVariant parameters: defaultConf need to be a pointer of struct not a %s", reflect.ValueOf(conf).Kind()))
 	}
 

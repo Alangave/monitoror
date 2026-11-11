@@ -188,7 +188,7 @@ func (cu *configUsecase) verifyTile(configBag *models.ConfigBag, tile *models.Ti
 		configBag.AddErrors(models.ConfigError{
 			ID: models.ConfigErrorUnsupportedTileInThisVersion,
 			Message: fmt.Sprintf(`%q tile type is not supported in version %q. Minimal supported version is %q`,
-				tile.Type, configBag.Config.Version, string(metadataExplorer.GetMinimalVersion())),
+				tile.Type, configBag.Config.Version.ToRawVersion(), string(metadataExplorer.GetMinimalVersion())),
 			Data: models.ConfigErrorData{
 				FieldName:     "type",
 				ConfigExtract: pkgConfig.Stringify(tile),

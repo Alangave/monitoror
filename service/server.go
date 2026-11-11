@@ -62,8 +62,23 @@ func (s *Server) setupEchoMiddleware() {
 
 	// Log requests
 	if debug.IsEnabled() {
-		s.Use(echoMiddleware.LoggerWithConfig(echoMiddleware.LoggerConfig{
-			Format: `[-] ` + colorer.Green("${method}") + ` ${uri} status:${status} latency:` + colorer.Green("${latency_human}") + ` error:"${error}"` + "\n",
+		s.Use(echoMiddleware.RequestLoggerWithConfig(echoMiddleware.RequestLoggerConfig{
+			LogMethod:  true,
+			LogURI:     true,
+			LogStatus:  true,
+			LogLatency: true,
+			LogError:   true,
+			LogValuesFunc: func(c echo.Context, v echoMiddleware.RequestLoggerValues) error {
+				errorMessage := ""
+				if v.Error != nil {
+					errorMessage = v.Error.Error()
+				}
+
+				fmt.Printf("[-] %s %s status:%d latency:%s error:%q\n",
+					colorer.Green(v.Method), v.URI, v.Status, colorer.Green(v.Latency.String()), errorMessage,
+				)
+				return nil
+			},
 		}))
 	}
 

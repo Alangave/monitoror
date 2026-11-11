@@ -10,7 +10,7 @@ import (
 // Interface transform interface to string
 func Interface(value interface{}) string {
 	// TODO handle slice properly if needed
-	if reflect.TypeOf(value).Kind() == reflect.Ptr {
+	if reflect.TypeOf(value).Kind() == reflect.Pointer {
 		rValue := reflect.ValueOf(value)
 		if rValue.IsNil() {
 			return ""

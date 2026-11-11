@@ -1,33 +1,46 @@
+version: "2"
 run:
   concurrency: 4
-  timeout: 5m
   issues-exit-code: 1
   tests: true
-
 output:
   formats:
-    - format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-issues:
-  exclude-dirs:
-    - ui
-  exclude-rules:
-    - path: service/rice-box.go
-      linters:
-        - misspell
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
 linters:
   enable:
-    - gosimple
-    - staticcheck
-    - unused
-    - govet
-    - unconvert
-    - gocyclo
-    - goimports
-    - misspell
-    - unparam
-    - nakedret
     - bodyclose
     - dupl
+    - gocyclo
+    - misspell
+    - nakedret
+    - unconvert
+    - unparam
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - misspell
+        path: service/rice-box.go
+    paths:
+      - ui
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - ui
+      - third_party$
+      - builtin$
+      - examples$
