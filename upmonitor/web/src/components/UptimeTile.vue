@@ -1,5 +1,9 @@
 <template>
-  <div class="c-uptime-tile" :class="[statusClass, { 'c-uptime-tile--group': isGroup }]">
+  <div
+    class="c-uptime-tile"
+    :class="[statusClass, { 'c-uptime-tile--group': isGroup }]"
+    :style="spanStyle"
+  >
     <div class="c-uptime-tile--content" v-if="state">
       <div class="c-uptime-tile--label">{{ info.label || info.id }}</div>
 
@@ -57,6 +61,11 @@ export default defineComponent({
     const isGroup = computed(() => props.info.type === 'GROUP')
     const children = computed(() => props.info.tiles ?? [])
 
+    const spanStyle = computed(() => ({
+      gridColumn: `span ${props.info.width || 1}`,
+      gridRow: `span ${props.info.height || 1}`,
+    }))
+
     const statusClass = computed(() => {
       if (!state.value) return 'c-uptime-tile--pending'
       return `c-uptime-tile--${state.value.status.toLowerCase()}`
@@ -96,6 +105,7 @@ export default defineComponent({
       state,
       isGroup,
       children,
+      spanStyle,
       statusClass,
       displayedUptime,
       sinceLabel,
@@ -110,7 +120,7 @@ export default defineComponent({
 <style lang="css" scoped>
 .c-uptime-tile {
   position: relative;
-  aspect-ratio: 2 / 1;
+  height: 100%;
   border-radius: 4px;
   overflow: hidden;
   color: #fff;
@@ -122,10 +132,6 @@ export default defineComponent({
 .c-uptime-tile--success { --tile-background: var(--color-succeeded); }
 .c-uptime-tile--failed { --tile-background: var(--color-failed); }
 .c-uptime-tile--pending { --tile-background: var(--color-pending); }
-
-.c-uptime-tile--group {
-  grid-column: span 2;
-}
 
 .c-uptime-tile--content {
   display: flex;

@@ -13,10 +13,12 @@ import (
 )
 
 type tileInfo struct {
-	ID    string     `json:"id"`
-	Type  string     `json:"type"`
-	Label string     `json:"label"`
-	Tiles []tileInfo `json:"tiles,omitempty"`
+	ID     string     `json:"id"`
+	Type   string     `json:"type"`
+	Label  string     `json:"label"`
+	Width  int        `json:"width,omitempty"`
+	Height int        `json:"height,omitempty"`
+	Tiles  []tileInfo `json:"tiles,omitempty"`
 }
 
 type configPayload struct {
@@ -100,7 +102,13 @@ func New(cfg *config.Config, mon *monitor.Monitor, ui fs.FS) http.Handler {
 }
 
 func buildTileInfo(tile config.TileConfig) tileInfo {
-	info := tileInfo{ID: tile.ID, Type: tile.Type, Label: tile.Label}
+	info := tileInfo{
+		ID:     tile.ID,
+		Type:   tile.Type,
+		Label:  tile.Label,
+		Width:  tile.Width,
+		Height: tile.Height,
+	}
 	for _, child := range tile.Tiles {
 		info.Tiles = append(info.Tiles, buildTileInfo(child))
 	}

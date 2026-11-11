@@ -24,6 +24,8 @@ export interface TileInfo {
   id: string
   type: string
   label: string
+  width?: number
+  height?: number
   tiles?: TileInfo[]
 }
 

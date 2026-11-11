@@ -2,7 +2,11 @@
   <div class="c-app">
     <div v-if="store.config" class="c-app--tiles-container" :style="gridStyle">
       <template v-for="tile in store.config.tiles" :key="tile.id">
-        <div v-if="tile.type === 'EMPTY'" class="c-app--empty-tile"></div>
+        <div
+          v-if="tile.type === 'EMPTY'"
+          class="c-app--empty-tile"
+          :style="spanStyle(tile)"
+        ></div>
         <uptime-tile v-else :info="tile"></uptime-tile>
       </template>
     </div>
@@ -21,6 +25,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted } from 'vue'
 import { store, loadConfig, connectEvents } from './store'
+import type { TileInfo } from './types'
 import UptimeTile from './components/UptimeTile.vue'
 
 export default defineComponent({
@@ -31,11 +36,18 @@ export default defineComponent({
       '--columns': store.config?.columns ?? 4,
     }))
 
+    function spanStyle (tile: TileInfo): Record<string, string> {
+      return {
+        gridColumn: `span ${tile.width || 1}`,
+        gridRow: `span ${tile.height || 1}`,
+      }
+    }
+
     onMounted(() => {
       void loadConfig().then(connectEvents)
     })
 
-    return { store, gridStyle }
+    return { store, gridStyle, spanStyle }
   },
 })
 </script>
@@ -48,6 +60,7 @@ export default defineComponent({
 .c-app--tiles-container {
   display: grid;
   grid-template-columns: repeat(var(--columns), 1fr);
+  grid-auto-rows: calc((100vw - (var(--columns) + 1) * 10px) / var(--columns) / 2);
   gap: 10px;
   padding: 10px;
 }
@@ -62,7 +75,6 @@ export default defineComponent({
 }
 
 .c-app--empty-tile {
-  aspect-ratio: 2 / 1;
   border-radius: 4px;
 }
 

@@ -23,6 +23,7 @@ const (
 	MinIntervalS     = 5
 	MaxTimeoutMs     = 30000
 	MaxColumns       = 12
+	MaxHeight        = 4
 )
 
 // Params holds the UPTIME tile parameters.
@@ -38,11 +39,14 @@ type Params struct {
 
 // TileConfig is a single tile declaration from the configuration file.
 // GROUP tiles embed their sub-tiles in Tiles; EMPTY tiles are grid placeholders.
+// Width and Height are the tile size in grid cells (defaults: 1x1, 2x1 for groups).
 type TileConfig struct {
 	Type   string       `json:"type"`
 	Label  string       `json:"label,omitempty"`
 	Params Params       `json:"params,omitempty"`
 	Tiles  []TileConfig `json:"tiles,omitempty"`
+	Width  int          `json:"width,omitempty"`
+	Height int          `json:"height,omitempty"`
 
 	// ID is the computed state key, filled by Validate/Load.
 	ID string `json:"-"`
@@ -91,7 +95,7 @@ func (c *Config) Validate() error {
 	}
 
 	for i := range c.Tiles {
-		if err := c.Tiles[i].validate(i); err != nil {
+		if err := c.Tiles[i].validate(i, c.Columns); err != nil {
 			return fmt.Errorf("tile %d: %w", i, err)
 		}
 	}
@@ -122,7 +126,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func (t *TileConfig) validate(index int) error {
+func (t *TileConfig) validate(index, columns int) error {
 	switch {
 	case strings.EqualFold(t.Type, TypeUptime):
 		t.Type = TypeUptime
@@ -142,7 +146,7 @@ func (t *TileConfig) validate(index int) error {
 			if !strings.EqualFold(child.Type, TypeUptime) {
 				return fmt.Errorf("sub-tile %d: only %q tiles are supported inside groups", i, TypeUptime)
 			}
-			if err := child.validate(i); err != nil {
+			if err := child.validate(i, columns); err != nil {
 				return fmt.Errorf("sub-tile %d: %w", i, err)
 			}
 		}
@@ -154,7 +158,32 @@ func (t *TileConfig) validate(index int) error {
 		return fmt.Errorf("unknown tile type %q, supported types: %q, %q, %q", t.Type, TypeUptime, TypeGroup, TypeEmpty)
 	}
 
+	if err := t.validateSize(columns); err != nil {
+		return err
+	}
+
 	t.ID = t.computeID()
+	return nil
+}
+
+// validateSize normalizes the tile size in grid cells.
+// GROUP tiles default to 2 cells wide, everything else to 1x1.
+func (t *TileConfig) validateSize(columns int) error {
+	if t.Type == TypeGroup && t.Width <= 0 {
+		t.Width = 2
+	}
+	if t.Width <= 0 {
+		t.Width = 1
+	}
+	if t.Width > columns {
+		return fmt.Errorf("tile width %d exceeds columns count (%d)", t.Width, columns)
+	}
+	if t.Height <= 0 {
+		t.Height = 1
+	}
+	if t.Height > MaxHeight {
+		return fmt.Errorf("tile height must be lower or equal to %d", MaxHeight)
+	}
 	return nil
 }
 

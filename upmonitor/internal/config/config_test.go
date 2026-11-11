@@ -167,3 +167,48 @@ func TestLoadMissingFile(t *testing.T) {
 		t.Error("Load() should fail for a missing file")
 	}
 }
+
+func TestTileSizes(t *testing.T) {
+	path := writeTempConfig(t, `{
+		"columns": 3,
+		"tiles": [
+			{"type": "UPTIME", "width": 2, "height": 3, "params": {"url": "https://example.com"}},
+			{"type": "GROUP", "label": "Prod", "tiles": [{"type": "UPTIME", "params": {"url": "https://api.example.com"}}]},
+			{"type": "EMPTY", "width": 3, "height": 2}
+		]
+	}`)
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.Tiles[0].Width != 2 || cfg.Tiles[0].Height != 3 {
+		t.Errorf("UPTIME size = %dx%d, want 2x3", cfg.Tiles[0].Width, cfg.Tiles[0].Height)
+	}
+	if cfg.Tiles[1].Width != 2 || cfg.Tiles[1].Height != 1 {
+		t.Errorf("GROUP default size = %dx%d, want 2x1", cfg.Tiles[1].Width, cfg.Tiles[1].Height)
+	}
+	if cfg.Tiles[2].Width != 3 || cfg.Tiles[2].Height != 2 {
+		t.Errorf("EMPTY size = %dx%d, want 3x2", cfg.Tiles[2].Width, cfg.Tiles[2].Height)
+	}
+}
+
+func TestTileSizeErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{"width exceeds columns", `{"columns": 2, "tiles": [{"type": "UPTIME", "width": 3, "params": {"url": "https://example.com"}}]}`},
+		{"height too high", `{"tiles": [{"type": "UPTIME", "height": 5, "params": {"url": "https://example.com"}}]}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := writeTempConfig(t, tt.content)
+			if _, err := Load(path); err == nil {
+				t.Errorf("Load() should fail for %s", tt.name)
+			}
+		})
+	}
+}

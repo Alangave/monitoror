@@ -71,6 +71,17 @@ A `GROUP` tile aggregates `UPTIME` sub-tiles defined inline. Its status is compu
 The displayed uptime is the average of the sub-tiles. Groups render double-width with
 their sub-tiles inside; each sub-tile is also streamed individually over SSE.
 
+### Tile sizes
+
+Every tile accepts an optional `width` and `height` in grid cells (default `1x1`,
+groups default to `2x1`):
+
+```json
+{"type": "UPTIME", "label": "Big tile", "width": 2, "height": 2, "params": {"url": "https://example.com"}}
+```
+
+`width` is capped by the wall `columns` count, `height` by 4.
+
 ### EMPTY tiles
 
 `{"type": "EMPTY"}` renders nothing and holds no state — it fills a grid cell to
