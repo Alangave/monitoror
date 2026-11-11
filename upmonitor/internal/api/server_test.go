@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -67,12 +68,12 @@ func TestConfigEndpoint(t *testing.T) {
 }
 
 func TestEventsEndpoint(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
+	defer target.Close()
 
-	cfg := testCfg(t, server.URL)
+	cfg := testCfg(t, target.URL)
 	mon, err := monitor.New(cfg, monitor.DefaultOptions())
 	if err != nil {
 		t.Fatalf("monitor: %v", err)
@@ -82,29 +83,50 @@ func TestEventsEndpoint(t *testing.T) {
 	defer cancel()
 	mon.Start(ctx)
 
-	handler := New(cfg, mon, nil)
+	apiServer := httptest.NewServer(New(cfg, mon, nil))
+	defer apiServer.Close()
 
-	events := make(chan string, 1)
-	request := httptest.NewRequest(http.MethodGet, "/api/events", nil).WithContext(ctx)
-	recorder := httptest.NewRecorder()
-
-	go func() {
-		handler.ServeHTTP(recorder, request)
-		close(events)
-	}()
-
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		body := recorder.Body.String()
-		if strings.Contains(body, "event: tile") && strings.Contains(body, `"id":"`) {
-			if !strings.Contains(body, "\"uptime\"") {
-				t.Errorf("tile event should contain uptime: %s", body)
-			}
-			return
-		}
-		time.Sleep(20 * time.Millisecond)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, apiServer.URL+"/api/events", nil)
+	if err != nil {
+		t.Fatalf("build request: %v", err)
 	}
-	t.Fatalf("no tile event received, body: %s", recorder.Body.String())
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatalf("do request: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+
+	reader := bufio.NewReader(response.Body)
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if time.Now().After(deadline) {
+			t.Fatal("no tile event received before deadline")
+		}
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("read event stream: %v", err)
+		}
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+
+		var state monitor.TileState
+		if err := json.Unmarshal([]byte(strings.TrimPrefix(strings.TrimSpace(line), "data: ")), &state); err != nil {
+			t.Fatalf("unmarshal tile event: %v", err)
+		}
+		if state.ID != cfg.Tiles[0].ID {
+			t.Errorf("tile ID = %q, want %q", state.ID, cfg.Tiles[0].ID)
+		}
+		if state.Uptime < 0 || state.Uptime > 1 {
+			t.Errorf("uptime = %f, should be within [0,1]", state.Uptime)
+		}
+		return
+	}
 }
 
 func TestHealthzEndpoint(t *testing.T) {
