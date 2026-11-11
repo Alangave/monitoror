@@ -244,7 +244,6 @@ export default defineComponent({
     }
 
     &:not(.c-app__show-cursor) {
-      cursor: none;
       user-select: none;
     }
 
@@ -260,7 +259,7 @@ export default defineComponent({
 
     &.c-app__no-scroll {
       @media screen and (min-width: 751px) {
-        overflow: hidden;
+        overflow: auto;
       }
     }
   }
